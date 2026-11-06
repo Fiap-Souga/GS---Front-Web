@@ -22,7 +22,7 @@ function ApiNotice({ isSignedIn }) {
     <aside className="api-demo-notice" role="note">
       <span aria-hidden="true">ⓘ</span>
       <span>{isSignedIn
-        ? 'Seus planos são privados e ficam salvos no MongoDB da sua conta.'
+        ? 'Seus planos são privados e ficam salvos no arquivo local da sua conta.'
         : 'Modo demonstração: a API externa JSONPlaceholder simula gravações. Entre ou crie uma conta para salvar seus próprios planos.'}</span>
     </aside>
   )
@@ -95,7 +95,7 @@ function DeleteConfirmation({ record, isSaving, onCancel, onConfirm }) {
     }}>
       <section className="record-dialog record-delete-dialog" role="alertdialog" aria-modal="true" aria-labelledby="delete-title">
         <h3 id="delete-title">Excluir esta ação?</h3>
-        <p><strong>{record.title}</strong> será removida desta demonstração.</p>
+        <p><strong>{record.title}</strong> será removida da sua lista.</p>
         <div className="record-delete-actions">
           <button className="record-cancel-button" type="button" disabled={isSaving} onClick={onCancel}>Cancelar</button>
           <button className="record-delete-confirm" type="button" disabled={isSaving} onClick={onConfirm}>{isSaving ? 'Excluindo...' : 'Excluir ação'}</button>

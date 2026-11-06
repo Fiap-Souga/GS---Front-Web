@@ -70,6 +70,36 @@ describe('persistência local em JSON', () => {
     expect(await restarted.planRepository.findByOwner(ana.id)).toEqual([])
   })
 
+  it('mantém hábitos isolados por conta e persistidos após reiniciar a API', async () => {
+    const { filePath, userRepository } = await createTemporaryRepositories()
+    const ana = await userRepository.create({
+      name: 'Ana Verde',
+      email: 'ana@example.com',
+      passwordHash: 'hash-ana',
+    })
+    const bia = await userRepository.create({
+      name: 'Bia Verde',
+      email: 'bia@example.com',
+      passwordHash: 'hash-bia',
+    })
+    const entry = {
+      date: '2026-11-06',
+      exerciseMinutes: 30,
+      waterLiters: 1.5,
+      steps: 4000,
+    }
+    await userRepository.upsertHabitEntry(ana.id, entry)
+    await userRepository.upsertHabitEntry(ana.id, { ...entry, exerciseMinutes: 45 })
+
+    const restarted = await createFileRepositories(filePath)
+    expect((await restarted.userRepository.findById(ana.id)).habitEntries).toEqual([
+      { ...entry, exerciseMinutes: 45 },
+    ])
+    expect((await restarted.userRepository.findById(bia.id)).habitEntries).toEqual([])
+    await restarted.userRepository.deleteHabitEntry(ana.id, entry.date)
+    expect((await restarted.userRepository.findById(ana.id)).habitEntries).toEqual([])
+  })
+
   it('serializa gravações simultâneas sem perder contas', async () => {
     const { userRepository, filePath } = await createTemporaryRepositories()
     await Promise.all(Array.from({ length: 12 }, (_, index) => userRepository.create({

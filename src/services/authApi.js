@@ -144,3 +144,25 @@ export async function resetTreeVisits() {
   notifySessionChange()
   return currentProfile
 }
+
+export async function saveHabitEntry(entry, isEditing = false) {
+  const path = isEditing
+    ? `/api/profile/habit-entries/${encodeURIComponent(entry.date)}`
+    : '/api/profile/habit-entries'
+  const data = await apiRequest(path, {
+    method: isEditing ? 'PUT' : 'POST',
+    body: JSON.stringify(entry),
+  })
+  currentProfile = data.profile
+  notifySessionChange()
+  return currentProfile
+}
+
+export async function deleteHabitEntry(date) {
+  const data = await apiRequest(`/api/profile/habit-entries/${encodeURIComponent(date)}`, {
+    method: 'DELETE',
+  })
+  currentProfile = data.profile
+  notifySessionChange()
+  return currentProfile
+}

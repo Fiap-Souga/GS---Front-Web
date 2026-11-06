@@ -35,7 +35,7 @@ export function AccountPanel() {
       setProfile(signedInProfile)
       setName(signedInProfile.name)
       setPassword('')
-      setNotice('Sua conta e seus dados agora ficam salvos no banco de dados.')
+      setNotice('Sua conta foi criada. Seus dados ficam salvos neste computador.')
     } catch (requestError) {
       setError(requestError.message)
     } finally {
@@ -82,7 +82,7 @@ export function AccountPanel() {
             <div>
               <span className="profile-eyebrow">SUA CONTA</span>
               <h2 id="account-panel-title">Olá, {profile.name}</h2>
-              <p>{profile.email} · planos e árvore salvos na sua conta</p>
+              <p>{profile.email} · perfil, hábitos, planos e árvore salvos na sua conta</p>
             </div>
             <button type="button" className="account-secondary-button" disabled={isLoading} onClick={signOut}>Sair</button>
           </div>
@@ -98,7 +98,7 @@ export function AccountPanel() {
             <div>
               <span className="profile-eyebrow">SEU ESPAÇO PESSOAL</span>
               <h2 id="account-panel-title">Salve seus planos e sua árvore</h2>
-              <p>Crie uma conta ou entre para acessar seus dados em outros dispositivos.</p>
+              <p>Crie uma conta ou entre para guardar seus dados pessoais neste computador.</p>
             </div>
           </div>
           <div className="account-mode-switch" role="group" aria-label="Acesso à conta">

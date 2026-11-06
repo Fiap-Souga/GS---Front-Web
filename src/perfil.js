@@ -4,6 +4,7 @@ import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { AccountPanel } from './components/AccountPanel.jsx'
 import { CommunityRecordsApp } from './components/CommunityRecordsApp.jsx'
+import { PersonalDashboard } from './components/PersonalDashboard.jsx'
 import { addTreeVisit, getCurrentSession, resetTreeVisits } from './services/authApi.js'
 
 const icon = (name) => {
@@ -143,6 +144,7 @@ document.querySelector('#app').innerHTML = `
     </section>
 
     <div id="account-root"></div>
+    <div id="personal-dashboard-root"></div>
 
     <section class="personal-stats" aria-label="Resumo de hábitos demonstrativos">
       <article class="personal-stat stat-exercise"><span class="personal-stat-icon">${icon('activity')}</span><span class="personal-stat-label">EXERCÍCIOS</span><strong><span id="exercise-sessions">3</span> <small>sessões</small></strong><p><span id="exercise-minutes">135</span> min de atividade</p></article>
@@ -234,11 +236,12 @@ document.querySelector('#app').innerHTML = `
       <span class="totem-tag">VISÃO DO PROJETO</span>
     </section>
   </main>
-  <footer class="profile-footer"><a class="brand footer-brand" href="/"><span class="brand-mark">${icon('leaf')}</span><span>raiz<span class="brand-light">urbana</span></span></a><span>Uma cidade melhor cresce com todo mundo.</span><small>Prévia demonstrativa · nenhuma informação foi coletada</small></footer>
+  <footer class="profile-footer"><a class="brand footer-brand" href="/"><span class="brand-mark">${icon('leaf')}</span><span>raiz<span class="brand-light">urbana</span></span></a><span>Uma cidade melhor cresce com todo mundo.</span><small>Registros pessoais são salvos localmente na sua conta.</small></footer>
 `
 
 createRoot(document.querySelector('#community-records-root')).render(createElement(CommunityRecordsApp))
 createRoot(document.querySelector('#account-root')).render(createElement(AccountPanel))
+createRoot(document.querySelector('#personal-dashboard-root')).render(createElement(PersonalDashboard))
 
 const activityChart = document.querySelector('#activity-chart')
 const dayDetail = document.querySelector('#day-detail')
@@ -443,6 +446,7 @@ const loadTreeProgress = () => {
 
 const applyAccountProfile = (profile) => {
   currentAccount = profile
+  document.querySelector('.profile-main').classList.add('is-personal-account')
   const treeVisits = profile.treeVisits ?? []
   treeVisitCount = treeVisits.length
   lastTreeVisitPlace = treeVisits.at(-1)?.place ?? ''
@@ -452,19 +456,20 @@ const applyAccountProfile = (profile) => {
   document.querySelector('.profile-pickers .profile-week-picker').hidden = true
   const banner = document.querySelector('.demo-banner span')
   banner.replaceChildren(Object.assign(document.createElement('strong'), { textContent: 'Conta pessoal conectada' }))
-  banner.append(' — seus planos e visitas à árvore são salvos no banco. Os demais indicadores continuam demonstrativos.')
+  banner.append(' — seus indicadores pessoais mostram apenas o que você registrar. Os dados ficam salvos na sua conta neste computador.')
   renderTreeProgress()
   renderPeriod(selectedPeriod)
 }
 
 const switchToDemoProfile = () => {
   currentAccount = null
+  document.querySelector('.profile-main').classList.remove('is-personal-account')
   document.querySelector('#profile-name').textContent = 'Ana'
   document.querySelector('#profile-emoji').textContent = '🌿'
   document.querySelector('.profile-pickers .profile-week-picker').hidden = false
   const banner = document.querySelector('.demo-banner span')
   banner.replaceChildren(Object.assign(document.createElement('strong'), { textContent: 'Perfis demonstrativos' }))
-  banner.append(' — os indicadores são fictícios. Entre ou crie uma conta para salvar seus planos e sua árvore no banco de dados.')
+  banner.append(' — os indicadores são fictícios. Entre ou crie uma conta para salvar seus próprios dados neste computador.')
   loadTreeProgress()
   renderTreeProgress()
   renderPeriod(selectedPeriod)

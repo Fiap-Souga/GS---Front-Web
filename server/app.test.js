@@ -22,6 +22,7 @@ const createRepository = () => {
       const user = {
         id: nextId++ === 0 ? USER_ID : '507f1f77bcf86cd799439012',
         treeVisits: [],
+        habitEntries: [],
         ...values,
       }
       users.set(values.email, user)
@@ -42,6 +43,19 @@ const createRepository = () => {
     resetTreeVisits: vi.fn(async (id) => {
       const user = [...users.values()].find((item) => item.id === id)
       if (user) user.treeVisits = []
+      return user ?? null
+    }),
+    upsertHabitEntry: vi.fn(async (id, entry) => {
+      const user = [...users.values()].find((item) => item.id === id)
+      if (user) {
+        user.habitEntries = user.habitEntries.filter((item) => item.date !== entry.date)
+        user.habitEntries.push(entry)
+      }
+      return user ?? null
+    }),
+    deleteHabitEntry: vi.fn(async (id, date) => {
+      const user = [...users.values()].find((item) => item.id === id)
+      if (user) user.habitEntries = user.habitEntries.filter((item) => item.date !== date)
       return user ?? null
     }),
   }
@@ -296,6 +310,65 @@ describe('API de autenticação', () => {
 
     expect(updated.body.profile.name).toBe('Ana Silva')
     expect(reset.body.profile.treeVisits).toEqual([])
+  })
+
+  it('salva, atualiza e exclui hábitos somente na conta autenticada', async () => {
+    const userRepository = createRepository()
+    const app = createApp({ userRepository, jwtSecret: JWT_SECRET })
+    for (const [name, email] of [['Ana Verde', 'ana@example.com'], ['Bia Verde', 'bia@example.com']]) {
+      await request(app).post('/api/auth/register').send({
+        name,
+        email,
+        password: 'senha-segura-123',
+      })
+    }
+    const ana = await signIn(app, 'ana@example.com')
+    const bia = await signIn(app, 'bia@example.com')
+    const date = new Date().toISOString().slice(0, 10)
+    const entry = { date, exerciseMinutes: 30, waterLiters: 1.5, steps: 4000 }
+    const created = await request(app)
+      .post('/api/profile/habit-entries')
+      .set('Cookie', ana.cookie)
+      .set('X-CSRF-Token', ana.csrfToken)
+      .send(entry)
+    const privateProfile = await request(app).get('/api/profile').set('Cookie', bia.cookie)
+    const updated = await request(app)
+      .put(`/api/profile/habit-entries/${date}`)
+      .set('Cookie', ana.cookie)
+      .set('X-CSRF-Token', ana.csrfToken)
+      .send({ exerciseMinutes: 45, waterLiters: 2, steps: 5000 })
+    const deleted = await request(app)
+      .delete(`/api/profile/habit-entries/${date}`)
+      .set('Cookie', ana.cookie)
+      .set('X-CSRF-Token', ana.csrfToken)
+
+    expect(created.status).toBe(201)
+    expect(created.body.profile.habitEntries).toEqual([entry])
+    expect(privateProfile.body.profile.habitEntries).toEqual([])
+    expect(updated.body.profile.habitEntries[0]).toEqual({
+      ...entry,
+      exerciseMinutes: 45,
+      waterLiters: 2,
+      steps: 5000,
+    })
+    expect(deleted.body.profile.habitEntries).toEqual([])
+  })
+
+  it('rejeita valores de hábitos inválidos e datas futuras', async () => {
+    const app = createApp({ userRepository: createRepository(), jwtSecret: JWT_SECRET })
+    await request(app).post('/api/auth/register').send({
+      name: 'Ana Verde',
+      email: 'ana@example.com',
+      password: 'senha-segura-123',
+    })
+    const session = await signIn(app, 'ana@example.com')
+    const invalid = await request(app)
+      .post('/api/profile/habit-entries')
+      .set('Cookie', session.cookie)
+      .set('X-CSRF-Token', session.csrfToken)
+      .send({ date: '9999-12-31', exerciseMinutes: -1, waterLiters: 50, steps: 999999 })
+
+    expect(invalid.status).toBe(400)
   })
 
   it('limita tentativas de cadastro e login por janela de tempo', async () => {

@@ -28,11 +28,12 @@ O servidor Express em `server/` oferece cadastro/login, perfil, árvore e planos
 - `POST /api/auth/login` — recebe `{ "email": "...", "password": "..." }` e devolve um token Bearer de acesso válido por 15 minutos.
 - `GET /api/auth/me` — retorna o perfil com `Authorization: Bearer <accessToken>`.
 - `GET /api/health` — verificação básica do servidor.
-- `/api/profile` — consulta e atualiza o perfil autenticado e o progresso da árvore.
+- `/api/profile` — consulta e atualiza o perfil autenticado.
 - `/api/profile/tree-visits` — registra visitas e permite reiniciar a árvore.
+- `/api/profile/habit-entries` — cria, atualiza e exclui registros pessoais diários de atividade, água e passos.
 - `/api/plans` — CRUD de planos pessoais persistidos por usuário.
 
-O arquivo guarda nome, e-mail normalizado, **hash bcrypt da senha**, visitas e planos associados ao dono da conta. A senha original nunca é salva. A API fica vinculada a `127.0.0.1`, ou seja, acessível somente neste computador; não configure redirecionamento de portas do roteador. Sessões usam cookie HttpOnly com proteção CSRF.
+O arquivo guarda nome, e-mail normalizado, **hash bcrypt da senha**, visitas, registros de hábitos e planos associados ao dono da conta. Novas contas começam sem registros; nada é preenchido automaticamente nem medido em segundo plano. A senha original nunca é salva. A API fica vinculada a `127.0.0.1`, ou seja, acessível somente neste computador; não configure redirecionamento de portas do roteador. Sessões usam cookie HttpOnly com proteção CSRF.
 
 ### Configuração local
 
@@ -49,14 +50,14 @@ O arquivo guarda nome, e-mail normalizado, **hash bcrypt da senha**, visitas e p
 
 Esta configuração é para demonstração e uso local, não para receber contas de usuários pela internet: o computador precisa ficar ligado e conectado, e o armazenamento JSON não tem as garantias de disponibilidade, backup e concorrência de um serviço de produção. Para usuários remotos, hospede a API em um serviço seguro e use um banco apropriado.
 
-Sem login, o painel de iniciativas usa JSONPlaceholder como demonstração e as alterações não persistem. Com login, o mesmo painel gerencia planos privados persistidos no arquivo JSON local. O progresso da árvore e o nome do perfil também são salvos na conta; métricas de hábitos continuam sendo dados ilustrativos.
+Sem login, a página mostra perfis e iniciativas demonstrativos; alterações nessa demonstração não são persistidas. Com login, o perfil pode ser renomeado, as visitas à árvore e os registros diários de hábitos podem ser adicionados, editados e excluídos, e os planos privados podem ser criados, editados e removidos. Esses dados ficam no arquivo JSON local e começam vazios para cada conta. Um convite no canto inicia um tour guiado pelas áreas do perfil; o painel de hábitos também oferece um gráfico semanal e exportação dos registros em CSV.
 
 Antes de aceitar usuários reais, publique uma política de privacidade adequada à LGPD, defina retenção e exclusão de contas, configure backups e recuperação, e faça uma revisão de segurança e operação do ambiente hospedado.
 
 ## Páginas
 
 - `/` — apresentação do projeto, áreas prioritárias, monitoramento e participação.
-- `/perfil.html` — acesso à conta, perfil, árvore digital, hábitos demonstrativos e painel de planos comunitários.
+- `/perfil.html` — acesso à conta, tutorial, árvore digital, registros pessoais de hábitos e painel de planos comunitários.
 
 ## Funcionalidades e arquitetura
 
