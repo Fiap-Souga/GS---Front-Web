@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+.community-records { color: #2e4032; }
+.community-records button, .community-records input, .community-records textarea, .community-records select { font: inherit; }
+.records-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+.records-header h2 { margin: 5px 0; color: #2d4332; font-family: Manrope, sans-serif; font-size: 24px; letter-spacing: -.8px; }
+.records-header p { max-width: 640px; margin: 0; color: #748071; font-size: 12px; line-height: 1.65; }
+.records-count { flex: 0 0 auto; padding: 7px 10px; border: 1px solid #e3e9de; border-radius: 999px; background: #f5f8f2; color: #617456; font-size: 10px; font-weight: 700; }
+.records-toolbar { display: flex; align-items: center; gap: 10px; margin-top: 20px; }
+.records-search, .records-region { min-height: 40px; padding: 0 12px; border: 1px solid #e3e9de; border-radius: 7px; background: #fff; color: #465448; font-size: 11px; }
+.records-search { flex: 1; }
+.records-search:focus, .records-region:focus, .record-form input:focus, .record-form textarea:focus, .record-form select:focus { outline: 3px solid #8eaa7628; border-color: #9db68c; }
+.records-region { min-width: 180px; }
+.record-new-button, .record-save-button { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 7px; padding: 0 14px; border: 0; border-radius: 7px; background: #36583a; color: white; font-size: 11px; font-weight: 700; cursor: pointer; transition: background .15s, transform .15s; }
+.record-new-button:hover, .record-save-button:hover { background: #456f48; transform: translateY(-1px); }
+.record-new-button:disabled, .record-save-button:disabled { opacity: .6; cursor: wait; transform: none; }
+.record-new-button svg, .record-save-button svg { width: 15px; height: 15px; }
+.api-demo-notice { display: flex; align-items: flex-start; gap: 9px; margin-top: 14px; padding: 11px 13px; border: 1px solid #eadfbd; border-radius: 7px; background: #fff9e9; color: #766744; font-size: 10px; line-height: 1.55; }
+.api-demo-notice svg { flex: 0 0 auto; width: 15px; height: 15px; }
+.record-error { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding: 10px 12px; border: 1px solid #edc9c4; border-radius: 7px; background: #fff3f1; color: #8d4036; font-size: 11px; }
+.record-error button { border: 0; background: transparent; color: inherit; font-size: 17px; cursor: pointer; }
+.records-status { min-height: 36px; display: flex; align-items: center; color: #7d8778; font-size: 11px; }
+.records-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; margin-top: 5px; }
+.record-card { min-width: 0; display: flex; flex-direction: column; padding: 15px; border: 1px solid #e5e9df; border-radius: 8px; background: #fff; box-shadow: 0 3px 12px #20332208; }
+.record-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.record-region-tag { display: inline-flex; align-items: center; gap: 5px; color: #72866a; font-size: 9px; font-weight: 700; letter-spacing: .3px; }.record-region-tag svg { width: 13px; height: 13px; }
+.record-card h3 { margin: 9px 0 5px; color: #334635; font-family: Manrope, sans-serif; font-size: 14px; line-height: 1.4; }
+.record-card p { margin: 0; color: #748071; font-size: 10px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.record-card-actions { display: flex; justify-content: flex-end; gap: 6px; margin-top: auto; padding-top: 13px; }
+.record-card-actions button { padding: 6px 9px; border: 1px solid #e4e9e1; border-radius: 5px; background: #fff; color: #5d7158; font-size: 9px; font-weight: 700; cursor: pointer; }
+.record-card-actions button:hover { background: #f1f5ed; }.record-card-actions button:last-child { color: #965347; }.record-card-actions button:last-child:hover { background: #fff2ef; }
+.record-empty { grid-column: 1 / -1; padding: 30px 16px; border: 1px dashed #dce5d5; border-radius: 8px; color: #7d8778; text-align: center; font-size: 11px; }
+.record-dialog-backdrop { position: fixed; inset: 0; z-index: 120; display: grid; place-items: center; overflow-y: auto; padding: 20px; background: #17241b9c; }
+.record-dialog { width: min(460px, 100%); padding: 22px; border: 1px solid #e3e9de; border-radius: 10px; background: #fbfcf8; box-shadow: 0 24px 70px #101a1266; }
+.record-dialog h3 { margin: 0 0 7px; color: #2d4332; font-family: Manrope, sans-serif; font-size: 19px; }.record-dialog > p { margin: 0 0 16px; color: #748071; font-size: 10px; line-height: 1.6; }
+.record-form { display: grid; gap: 12px; }.record-form label { display: grid; gap: 5px; color: #5c6a59; font-size: 10px; font-weight: 700; }.record-form input, .record-form textarea, .record-form select { width: 100%; padding: 10px; border: 1px solid #dfe7db; border-radius: 6px; background: #fff; color: #39483a; font-size: 11px; }.record-form textarea { min-height: 92px; resize: vertical; }.record-form-error { margin: 0; color: #984b40; font-size: 10px; }
+.record-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 5px; }.record-cancel-button { min-height: 38px; padding: 0 12px; border: 1px solid #e0e6dc; border-radius: 6px; background: white; color: #63715e; font-size: 10px; font-weight: 700; cursor: pointer; }
+.record-delete-dialog { width: min(390px, 100%); }.record-delete-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }.record-delete-confirm { min-height: 38px; padding: 0 12px; border: 0; border-radius: 6px; background: #a64e43; color: white; font-size: 10px; font-weight: 700; cursor: pointer; }.record-delete-confirm:hover { background: #8d4036; }
+@media (max-width: 640px) { .records-header { align-items: flex-start; flex-direction: column; gap: 10px; }.records-header h2 { font-size: 21px; }.records-toolbar { align-items: stretch; flex-wrap: wrap; }.records-search { flex-basis: calc(100% - 190px); }.records-region { min-width: 0; flex: 1; }.records-list { grid-template-columns: 1fr; }.record-dialog { padding: 18px; } }
+@media (prefers-reduced-motion: reduce) { .record-new-button, .record-save-button { transition: none; } }

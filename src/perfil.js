@@ -1,5 +1,8 @@
 import './style.css'
 import './perfil.css'
+import { createElement } from 'react'
+import { createRoot } from 'react-dom/client'
+import { CommunityRecordsApp } from './components/CommunityRecordsApp.jsx'
 
 const icon = (name) => {
   const paths = {
@@ -219,6 +222,8 @@ document.querySelector('#app').innerHTML = `
       <p class="places-note">Locais fictícios para demonstrar como futuras visitas registradas pelo aplicativo poderiam aparecer aqui.</p>
     </section>
 
+    <div id="community-records-root"></div>
+
     <section class="totem-note">
       <span class="totem-icon">${icon('people')}</span>
       <div><strong>Totens que conectam o bairro.</strong><p>No futuro, totens em áreas verdes poderão apresentar atividades comunitárias de forma agregada e com privacidade.</p></div>
@@ -227,6 +232,8 @@ document.querySelector('#app').innerHTML = `
   </main>
   <footer class="profile-footer"><a class="brand footer-brand" href="/"><span class="brand-mark">${icon('leaf')}</span><span>raiz<span class="brand-light">urbana</span></span></a><span>Uma cidade melhor cresce com todo mundo.</span><small>Prévia demonstrativa · nenhuma informação foi coletada</small></footer>
 `
+
+createRoot(document.querySelector('#community-records-root')).render(createElement(CommunityRecordsApp))
 
 const activityChart = document.querySelector('#activity-chart')
 const dayDetail = document.querySelector('#day-detail')
