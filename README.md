@@ -51,3 +51,7 @@ npm run preview
 Os arquivos prontos para publicação são gerados em `dist/`. `node_modules/` e `dist/` não são necessários no Git; podem ser recriados com os comandos acima.
 
 O site carrega imagens do Unsplash e fontes do Google Fonts, portanto esses recursos externos dependem de conexão com a internet.
+
+## Publicação na Vercel
+
+Depois de autenticar a Vercel CLI (`npx vercel login`), execute `npx vercel` para criar uma prévia e `npx vercel --prod` para publicar em produção. A configuração de build usa `npm run build` e a pasta `dist/`.
