@@ -71,7 +71,7 @@ O restante das páginas originais é mantido em JavaScript para preservar as int
 
 ## API e dados demonstrativos
 
-O painel utiliza a API pública [JSONPlaceholder](https://jsonplaceholder.typicode.com/posts) para demonstrar consultas e operações CRUD sem login; as gravações são simuladas e desaparecem ao recarregar a página. Com uma conta autenticada, o painel alterna para a API própria e salva os planos por usuário no arquivo JSON local.
+Sem login, o painel apresenta oito iniciativas demonstrativas em português do Brasil e permite testar criação, edição e exclusão temporárias; essas alterações desaparecem ao recarregar a página e não dependem de API externa. Com uma conta autenticada, o painel alterna para a API própria e salva os planos por usuário no arquivo JSON local.
 
 As leituras climáticas e estatísticas de hábitos continuam fictícias. Ainda não há integração real com totens nem monitoramento de localização. O formulário de conta permite cadastro/login; visitas da árvore e planos são registrados apenas quando a pessoa os informa, associados à sua conta e salvos no arquivo JSON local. Sem login, o progresso da árvore fica somente no armazenamento local do navegador.
 

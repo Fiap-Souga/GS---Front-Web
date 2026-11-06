@@ -23,7 +23,7 @@ function ApiNotice({ isSignedIn }) {
       <span aria-hidden="true">ⓘ</span>
       <span>{isSignedIn
         ? 'Seus planos são privados e ficam salvos no arquivo local da sua conta.'
-        : 'Modo demonstração: a API externa JSONPlaceholder simula gravações. Entre ou crie uma conta para salvar seus próprios planos.'}</span>
+        : 'Modo demonstração: atividades em português com alterações temporárias neste navegador. Entre ou crie uma conta para salvar seus próprios planos.'}</span>
     </aside>
   )
 }
@@ -213,7 +213,7 @@ export function CommunityRecordsApp() {
         </div>
       </div>
       {isLoading
-        ? <p className="records-status" role="status">Carregando ações da API...</p>
+        ? <p className="records-status" role="status">Carregando iniciativas...</p>
         : <RecordList records={filteredRecords} isSaving={isSaving} onEdit={setEditingRecord} onDelete={setDeletingRecord} />}
       {editingRecord !== undefined && (
         <RecordEditor

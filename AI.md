@@ -5,7 +5,7 @@ Este projeto foi desenvolvido com apoio de um assistente de IA integrado ao VS C
 ## Como a IA foi utilizada
 
 - Apoio na revisão da estrutura e na preparação do projeto Vite para a entrega.
-- Implementação assistida do painel React de iniciativas comunitárias, hooks, integração demonstrativa com JSONPlaceholder e testes automatizados.
+- Implementação assistida do painel React de iniciativas comunitárias, hooks, atividades de demonstração em português e testes automatizados.
 - Implementação assistida do cadastro e login, com hash de senha, sessão segura, persistência local em JSON para perfis, árvore e planos, e testes.
 - Polimento do perfil pessoal: tour guiado interativo, métricas pessoais vazias até serem registradas, resumo visual semanal e exportação CSV dos registros diários de hábitos.
 - Apoio na revisão da documentação, investigação de erros e execução de build e testes.
@@ -23,6 +23,6 @@ Este projeto foi desenvolvido com apoio de um assistente de IA integrado ao VS C
 
 As alterações foram verificadas com `npm test` e `npm run build`. A senha é armazenada como hash bcrypt; a sessão web utiliza cookie HttpOnly com proteção CSRF. As operações de perfil, hábitos, árvore, planos e tour têm testes automatizados.
 
-A persistência JSON é somente local: o arquivo fica em `server/data/raiz-urbana.json` e a API escuta apenas em loopback. Isso evita um serviço de banco hospedado, mas não permite que pessoas na internet acessem o computador nem oferece garantias de concorrência, disponibilidade ou backup de um banco de produção. O arquivo precisa ser mantido privado e protegido. O JSONPlaceholder sem login continua simulando gravações; contas autenticadas têm registros de hábitos pessoais que só aparecem após serem adicionados manualmente. Não há integração com totens nem monitoramento de localização.
+A persistência JSON é somente local: o arquivo fica em `server/data/raiz-urbana.json` e a API escuta apenas em loopback. Isso evita um serviço de banco hospedado, mas não permite que pessoas na internet acessem o computador nem oferece garantias de concorrência, disponibilidade ou backup de um banco de produção. O arquivo precisa ser mantido privado e protegido. Sem login, as atividades de demonstração em português e suas alterações temporárias funcionam localmente; contas autenticadas têm registros de hábitos pessoais que só aparecem após serem adicionados manualmente. Não há integração com totens nem monitoramento de localização.
 
 A IA acelerou a implementação e a criação de testes, mas não valida sozinha a configuração do computador nem substitui revisão humana. A solução local não deve ser usada para coletar contas de usuários remotos. O limitador de tentativas é em memória e ainda não há recuperação de senha, confirmação de e-mail ou exclusão de conta.
