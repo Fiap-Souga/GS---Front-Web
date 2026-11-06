@@ -1,5 +1,25 @@
 @import "tailwindcss";
 
+[hidden] { display: none !important; }
+.account-panel { margin: 0 0 18px; padding: 20px; border: 1px solid #e5e9df; border-radius: 9px; background: #fff; color: #2e4032; }
+.account-panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.account-panel-heading h2 { margin: 5px 0; color: #2d4332; font-family: Manrope, sans-serif; font-size: 19px; }
+.account-panel-heading p, .account-privacy-note { margin: 0; color: #748071; font-size: 11px; line-height: 1.6; }
+.account-auth-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.account-auth-form label, .account-name-form label { display: grid; gap: 5px; color: #5c6a59; font-size: 10px; font-weight: 700; }
+.account-auth-form label:first-child:last-of-type { grid-column: 1 / -1; }
+.account-auth-form input, .account-name-form input { width: 100%; min-height: 38px; padding: 8px 10px; border: 1px solid #dfe7db; border-radius: 6px; background: #fff; color: #39483a; font: inherit; }
+.account-auth-form input:focus, .account-name-form input:focus { outline: 3px solid #8eaa7628; border-color: #9db68c; }
+.account-mode-switch { display: flex; gap: 6px; margin-top: 14px; }
+.account-mode-switch button, .account-secondary-button { min-height: 34px; padding: 0 11px; border: 1px solid #e0e6dc; border-radius: 6px; background: #fff; color: #63715e; font-size: 10px; font-weight: 700; cursor: pointer; }
+.account-mode-switch button[aria-pressed="true"] { border-color: #36583a; background: #eff4eb; color: #36583a; }
+.account-primary-button { min-height: 38px; align-self: end; padding: 0 13px; border: 0; border-radius: 6px; background: #36583a; color: white; font-size: 10px; font-weight: 700; cursor: pointer; }
+.account-primary-button:disabled, .account-secondary-button:disabled { opacity: .6; cursor: wait; }
+.account-name-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: end; max-width: 500px; margin-top: 15px; }
+.account-name-form label { grid-column: 1 / -1; }
+.account-message { margin: 10px 0 0; color: #456f48; font-size: 11px; }
+.account-error { color: #984b40; }
+.account-privacy-note { margin-top: 12px; font-size: 10px; }
 .community-records { color: #2e4032; }
 .community-records button, .community-records input, .community-records textarea, .community-records select { font: inherit; }
 .records-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
@@ -37,4 +57,5 @@
 .record-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 5px; }.record-cancel-button { min-height: 38px; padding: 0 12px; border: 1px solid #e0e6dc; border-radius: 6px; background: white; color: #63715e; font-size: 10px; font-weight: 700; cursor: pointer; }
 .record-delete-dialog { width: min(390px, 100%); }.record-delete-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }.record-delete-confirm { min-height: 38px; padding: 0 12px; border: 0; border-radius: 6px; background: #a64e43; color: white; font-size: 10px; font-weight: 700; cursor: pointer; }.record-delete-confirm:hover { background: #8d4036; }
 @media (max-width: 640px) { .records-header { align-items: flex-start; flex-direction: column; gap: 10px; }.records-header h2 { font-size: 21px; }.records-toolbar { align-items: stretch; flex-wrap: wrap; }.records-search { flex-basis: calc(100% - 190px); }.records-region { min-width: 0; flex: 1; }.records-list { grid-template-columns: 1fr; }.record-dialog { padding: 18px; } }
+@media (max-width: 520px) { .account-auth-form { grid-template-columns: 1fr; }.account-auth-form label:first-child:last-of-type { grid-column: auto; }.account-name-form { grid-template-columns: 1fr; }.account-name-form label { grid-column: auto; } }
 @media (prefers-reduced-motion: reduce) { .record-new-button, .record-save-button { transition: none; } }

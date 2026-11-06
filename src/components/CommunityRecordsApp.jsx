@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { useCommunityRecords } from '../hooks/useCommunityRecords.js'
 import { useDialogDismiss } from '../hooks/useDialogDismiss.js'
 import { useRecordForm } from '../hooks/useRecordForm.js'
+import { getCurrentSession } from '../services/authApi.js'
 import '../react.css'
 
 const REGIONS = [
@@ -16,11 +17,13 @@ const locationIcon = (
   </svg>
 )
 
-function ApiNotice() {
+function ApiNotice({ isSignedIn }) {
   return (
     <aside className="api-demo-notice" role="note">
       <span aria-hidden="true">ⓘ</span>
-      <span>API pública de demonstração (JSONPlaceholder). Consultas e operações CRUD funcionam, mas a API simula gravações: os dados alterados não persistem após recarregar a página.</span>
+      <span>{isSignedIn
+        ? 'Seus planos são privados e ficam salvos no MongoDB da sua conta.'
+        : 'Modo demonstração: a API externa JSONPlaceholder simula gravações. Entre ou crie uma conta para salvar seus próprios planos.'}</span>
     </aside>
   )
 }
@@ -147,6 +150,7 @@ function RecordList({ records, isSaving, onEdit, onDelete }) {
 }
 
 export function CommunityRecordsApp() {
+  const isSignedIn = Boolean(getCurrentSession())
   const {
     records,
     isLoading,
@@ -189,11 +193,11 @@ export function CommunityRecordsApp() {
         <div>
           <span className="profile-eyebrow">INICIATIVAS DO BAIRRO</span>
           <h2 id="community-records-title">Ações da comunidade</h2>
-          <p>Explore e organize atividades demonstrativas de cuidado com parques e praças.</p>
+          <p>{isSignedIn ? 'Organize suas próprias atividades de cuidado com parques e praças.' : 'Explore atividades demonstrativas ou entre na sua conta para criar planos pessoais.'}</p>
         </div>
         <span className="records-count" aria-live="polite">{records.length} ações</span>
       </div>
-      <ApiNotice />
+      <ApiNotice isSignedIn={isSignedIn} />
       {error && (
         <div className="record-error" role="alert">
           <span>{error}</span>

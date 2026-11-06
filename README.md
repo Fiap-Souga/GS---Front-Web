@@ -4,7 +4,7 @@ Aplicação demonstrativa para aproximar comunidades de áreas verdes, monitoram
 
 ## Requisitos
 
-- Node.js 20 ou superior
+- Node.js 20.19 ou superior
 - npm
 
 ## Executar e testar
@@ -14,16 +14,49 @@ npm ci
 npm run dev
 ```
 
-O Vite informa no terminal o endereço local. Para executar os testes dos fluxos React:
+O Vite informa no terminal o endereço local. Para executar os testes dos fluxos da interface e da API:
 
 ```bash
 npm test
 ```
 
+## API local e dados
+
+O servidor Express em `server/` oferece cadastro/login, perfil, árvore e planos. Por padrão, os dados são gravados localmente em `server/data/raiz-urbana.json`:
+
+- `POST /api/auth/register` — recebe `{ "name": "...", "email": "...", "password": "..." }`.
+- `POST /api/auth/login` — recebe `{ "email": "...", "password": "..." }` e devolve um token Bearer de acesso válido por 15 minutos.
+- `GET /api/auth/me` — retorna o perfil com `Authorization: Bearer <accessToken>`.
+- `GET /api/health` — verificação básica do servidor.
+- `/api/profile` — consulta e atualiza o perfil autenticado e o progresso da árvore.
+- `/api/profile/tree-visits` — registra visitas e permite reiniciar a árvore.
+- `/api/plans` — CRUD de planos pessoais persistidos por usuário.
+
+O arquivo guarda nome, e-mail normalizado, **hash bcrypt da senha**, visitas e planos associados ao dono da conta. A senha original nunca é salva. A API fica vinculada a `127.0.0.1`, ou seja, acessível somente neste computador; não configure redirecionamento de portas do roteador. Sessões usam cookie HttpOnly com proteção CSRF.
+
+### Configuração local
+
+1. Copie `.env.example` para `.env` e gere um segredo JWT:
+
+   ```bash
+   node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"
+   ```
+
+2. Em um terminal, execute `npm run api:dev`; em outro, `npm run dev`. O proxy do Vite encaminha `/api` para `http://localhost:4000`.
+3. Crie uma conta no perfil. A API cria automaticamente `server/data/raiz-urbana.json`; mantenha esse arquivo privado e faça cópias de segurança protegidas.
+
+`DATA_FILE` permite escolher outro caminho para o arquivo JSON. `.env`, o arquivo de dados e cópias de segurança não devem ser enviados ao Git nem compartilhados.
+
+Esta configuração é para demonstração e uso local, não para receber contas de usuários pela internet: o computador precisa ficar ligado e conectado, e o armazenamento JSON não tem as garantias de disponibilidade, backup e concorrência de um serviço de produção. Para usuários remotos, hospede a API em um serviço seguro e use um banco apropriado.
+
+Sem login, o painel de iniciativas usa JSONPlaceholder como demonstração e as alterações não persistem. Com login, o mesmo painel gerencia planos privados persistidos no arquivo JSON local. O progresso da árvore e o nome do perfil também são salvos na conta; métricas de hábitos continuam sendo dados ilustrativos.
+
+Antes de aceitar usuários reais, publique uma política de privacidade adequada à LGPD, defina retenção e exclusão de contas, configure backups e recuperação, e faça uma revisão de segurança e operação do ambiente hospedado.
+
 ## Páginas
 
 - `/` — apresentação do projeto, áreas prioritárias, monitoramento e participação.
-- `/perfil.html` — perfis demonstrativos, hábitos, visitas, árvore digital e painel React de iniciativas comunitárias.
+- `/perfil.html` — acesso à conta, perfil, árvore digital, hábitos demonstrativos e painel de planos comunitários.
 
 ## Funcionalidades e arquitetura
 
@@ -37,9 +70,9 @@ O restante das páginas originais é mantido em JavaScript para preservar as int
 
 ## API e dados demonstrativos
 
-O painel utiliza a API pública [JSONPlaceholder](https://jsonplaceholder.typicode.com/posts). Ela aceita GET, POST, PUT e DELETE para demonstração, mas não persiste alterações: os novos itens e edições somem ao atualizar a página. O painel informa essa limitação.
+O painel utiliza a API pública [JSONPlaceholder](https://jsonplaceholder.typicode.com/posts) para demonstrar consultas e operações CRUD sem login; as gravações são simuladas e desaparecem ao recarregar a página. Com uma conta autenticada, o painel alterna para a API própria e salva os planos por usuário no arquivo JSON local.
 
-As leituras climáticas, estatísticas, perfis, afinidades e visitas também são fictícias. Não há autenticação, integração real com totens, monitoramento de localização ou coleta de dados pessoais. O progresso manual da árvore digital é salvo somente no armazenamento local do navegador.
+As leituras climáticas e estatísticas de hábitos continuam fictícias. Ainda não há integração real com totens nem monitoramento de localização. O formulário de conta permite cadastro/login; visitas da árvore e planos são registrados apenas quando a pessoa os informa, associados à sua conta e salvos no arquivo JSON local. Sem login, o progresso da árvore fica somente no armazenamento local do navegador.
 
 ## Build
 
@@ -55,3 +88,5 @@ O site carrega imagens do Unsplash e fontes do Google Fonts, portanto esses recu
 ## Publicação na Vercel
 
 Depois de autenticar a Vercel CLI (`npx vercel login`), execute `npx vercel` para criar uma prévia e `npx vercel --prod` para publicar em produção. A configuração de build usa `npm run build` e a pasta `dist/`.
+
+A configuração atual da Vercel publica apenas o site estático; ela não acessa o arquivo no seu computador. O armazenamento JSON local não deve ser usado como banco de produção em uma hospedagem serverless.

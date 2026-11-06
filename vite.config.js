@@ -8,6 +8,11 @@ const root = fileURLToPath(new URL('.', import.meta.url))
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:4000',
+    },
+  },
   build: {
     rollupOptions: {
       input: {

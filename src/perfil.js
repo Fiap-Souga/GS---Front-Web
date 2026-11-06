@@ -2,7 +2,9 @@ import './style.css'
 import './perfil.css'
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
+import { AccountPanel } from './components/AccountPanel.jsx'
 import { CommunityRecordsApp } from './components/CommunityRecordsApp.jsx'
+import { addTreeVisit, getCurrentSession, resetTreeVisits } from './services/authApi.js'
 
 const icon = (name) => {
   const paths = {
@@ -140,6 +142,8 @@ document.querySelector('#app').innerHTML = `
       </div>
     </section>
 
+    <div id="account-root"></div>
+
     <section class="personal-stats" aria-label="Resumo de hábitos demonstrativos">
       <article class="personal-stat stat-exercise"><span class="personal-stat-icon">${icon('activity')}</span><span class="personal-stat-label">EXERCÍCIOS</span><strong><span id="exercise-sessions">3</span> <small>sessões</small></strong><p><span id="exercise-minutes">135</span> min de atividade</p></article>
       <article class="personal-stat stat-water"><span class="personal-stat-icon">${icon('water')}</span><span class="personal-stat-label">ÁGUA REGISTRADA</span><strong><span id="water-liters">11,2</span> <small>L</small></strong><p>média de <span id="water-average">1,6</span> L por dia</p></article>
@@ -234,6 +238,7 @@ document.querySelector('#app').innerHTML = `
 `
 
 createRoot(document.querySelector('#community-records-root')).render(createElement(CommunityRecordsApp))
+createRoot(document.querySelector('#account-root')).render(createElement(AccountPanel))
 
 const activityChart = document.querySelector('#activity-chart')
 const dayDetail = document.querySelector('#day-detail')
@@ -245,6 +250,7 @@ let selectedProfileId = 'ana'
 let treeVisitCount = 0
 let lastTreeVisitPlace = ''
 let treeStorageAvailable = true
+let currentAccount = getCurrentSession()
 const treeMilestones = [1, 3, 6, 10]
 const getTreeStorageKey = () => selectedProfileId === 'ana'
   ? 'raiz-urbana-profile-tree'
@@ -435,6 +441,35 @@ const loadTreeProgress = () => {
   }
 }
 
+const applyAccountProfile = (profile) => {
+  currentAccount = profile
+  const treeVisits = profile.treeVisits ?? []
+  treeVisitCount = treeVisits.length
+  lastTreeVisitPlace = treeVisits.at(-1)?.place ?? ''
+  treeStorageAvailable = true
+  document.querySelector('#profile-name').textContent = profile.name
+  document.querySelector('#profile-emoji').textContent = '🌱'
+  document.querySelector('.profile-pickers .profile-week-picker').hidden = true
+  const banner = document.querySelector('.demo-banner span')
+  banner.replaceChildren(Object.assign(document.createElement('strong'), { textContent: 'Conta pessoal conectada' }))
+  banner.append(' — seus planos e visitas à árvore são salvos no banco. Os demais indicadores continuam demonstrativos.')
+  renderTreeProgress()
+  renderPeriod(selectedPeriod)
+}
+
+const switchToDemoProfile = () => {
+  currentAccount = null
+  document.querySelector('#profile-name').textContent = 'Ana'
+  document.querySelector('#profile-emoji').textContent = '🌿'
+  document.querySelector('.profile-pickers .profile-week-picker').hidden = false
+  const banner = document.querySelector('.demo-banner span')
+  banner.replaceChildren(Object.assign(document.createElement('strong'), { textContent: 'Perfis demonstrativos' }))
+  banner.append(' — os indicadores são fictícios. Entre ou crie uma conta para salvar seus planos e sua árvore no banco de dados.')
+  loadTreeProgress()
+  renderTreeProgress()
+  renderPeriod(selectedPeriod)
+}
+
 const renderTreeProgress = () => {
   const stageIndex = treeVisitCount >= 10 ? 4 : treeMilestones.filter((milestone) => treeVisitCount >= milestone).length
   const previousMilestone = stageIndex === 0 ? 0 : treeMilestones[stageIndex - 1]
@@ -457,13 +492,31 @@ const renderTreeProgress = () => {
     : 'Sua árvore chegou ao estágio máximo. Continue visitando áreas verdes!'
   if (treeStorageAvailable) {
     treeVisitStatus.textContent = lastTreeVisitPlace
-      ? `Última visita registrada: ${lastTreeVisitPlace}. Progresso salvo somente neste navegador.`
-      : 'Progresso demonstrativo salvo somente neste navegador. Nenhuma localização é rastreada.'
+      ? `Última visita registrada: ${lastTreeVisitPlace}. ${currentAccount ? 'Progresso salvo na sua conta.' : 'Progresso salvo somente neste navegador.'}`
+      : currentAccount
+        ? 'Progresso da árvore salvo na sua conta. Nenhuma localização é rastreada.'
+        : 'Progresso demonstrativo salvo somente neste navegador. Nenhuma localização é rastreada.'
   }
 }
 
-document.querySelector('#register-tree-visit').addEventListener('click', () => {
-  lastTreeVisitPlace = document.querySelector('#tree-park-select').value
+document.querySelector('#register-tree-visit').addEventListener('click', async (event) => {
+  const registerButton = event.currentTarget
+  const place = document.querySelector('#tree-park-select').value
+  if (currentAccount) {
+    registerButton.disabled = true
+    try {
+      const profile = await addTreeVisit(place)
+      applyAccountProfile(profile)
+      treeVisitStatus.textContent = `Visita ao ${place} registrada e salva na sua conta.`
+    } catch (error) {
+      treeVisitStatus.textContent = `Não foi possível registrar a visita: ${error.message}`
+    } finally {
+      registerButton.disabled = false
+    }
+    return
+  }
+
+  lastTreeVisitPlace = place
   treeVisitCount += 1
   renderTreeProgress()
 
@@ -481,7 +534,22 @@ document.querySelector('#register-tree-visit').addEventListener('click', () => {
   }
 })
 
-document.querySelector('#reset-tree').addEventListener('click', () => {
+document.querySelector('#reset-tree').addEventListener('click', async (event) => {
+  const resetButton = event.currentTarget
+  if (currentAccount) {
+    resetButton.disabled = true
+    try {
+      const profile = await resetTreeVisits()
+      applyAccountProfile(profile)
+      treeVisitStatus.textContent = 'Sua árvore foi reiniciada e a alteração foi salva na conta.'
+    } catch (error) {
+      treeVisitStatus.textContent = `Não foi possível reiniciar a árvore: ${error.message}`
+    } finally {
+      resetButton.disabled = false
+    }
+    return
+  }
+
   treeVisitCount = 0
   lastTreeVisitPlace = ''
   renderTreeProgress()
@@ -517,7 +585,8 @@ const renderPeriod = (period) => {
   document.querySelector('#water-average').textContent = data.waterAverage
   document.querySelector('#walking-distance').textContent = data.distance
   document.querySelector('#walking-steps').textContent = data.steps
-  document.querySelector('#green-visits').textContent = data.greenPlaces
+  const greenVisitCount = currentAccount ? currentAccount.treeVisits.length : data.greenPlaces
+  document.querySelector('#green-visits').textContent = greenVisitCount
   document.querySelector('#chart-total').textContent = data.minutes
   document.querySelector('#movement-goal-label').textContent = `${data.exercise} de ${period === 'week' ? '4' : '16'} sessões`
   document.querySelector('#water-goal-label').textContent = `${data.waterGoal}% da meta pessoal`
@@ -532,13 +601,15 @@ const renderPeriod = (period) => {
   document.querySelector('#compare-exercise').textContent = `${data.minutes} min`
   document.querySelector('#group-exercise').textContent = period === 'week' ? '120 min' : '480 min'
   document.querySelector('#compare-water').textContent = `${data.waterAverage} L/dia`
-  document.querySelector('#compare-green').textContent = `${data.greenPlaces} visitas`
+  document.querySelector('#compare-green').textContent = `${greenVisitCount} visitas`
   document.querySelector('#group-green').textContent = period === 'week' ? '3 visitas' : '7 visitas'
-  document.querySelector('#places-count').textContent = data.greenPlaces
+  document.querySelector('#places-count').textContent = greenVisitCount
   document.querySelector('#chart-total').textContent = data.minutes
-  document.querySelector('.places-note').textContent = period === 'week'
-    ? 'Locais fictícios para demonstrar como futuras visitas registradas pelo aplicativo poderiam aparecer aqui.'
-    : 'Resumo fictício do mês. Locais sem nomes de pessoas ou dados identificáveis.'
+  document.querySelector('.places-note').textContent = currentAccount
+    ? 'Visitas que você registrou manualmente. Nenhuma localização é rastreada.'
+    : period === 'week'
+      ? 'Locais fictícios para demonstrar como futuras visitas registradas pelo aplicativo poderiam aparecer aqui.'
+      : 'Resumo fictício do mês. Locais sem nomes de pessoas ou dados identificáveis.'
 
   const heights = data.days.map((day) => day.exercise)
   const maximum = Math.max(...heights, 1)
@@ -559,14 +630,21 @@ const renderPeriod = (period) => {
     })
   })
 
-  const visitedPlaces = data.days
-    .filter((day) => day.place !== 'Nenhuma área verde registrada')
-    .reduce((places, day) => {
-      const existingPlace = places.find((place) => place.name === day.place)
+  const visitedPlaces = currentAccount
+    ? currentAccount.treeVisits.reduce((places, visit) => {
+      const existingPlace = places.find((place) => place.name === visit.place)
       if (existingPlace) existingPlace.visits += 1
-      else places.push({ name: day.place, visits: 1 })
+      else places.push({ name: visit.place, visits: 1 })
       return places
     }, [])
+    : data.days
+      .filter((day) => day.place !== 'Nenhuma área verde registrada')
+      .reduce((places, day) => {
+        const existingPlace = places.find((place) => place.name === day.place)
+        if (existingPlace) existingPlace.visits += 1
+        else places.push({ name: day.place, visits: 1 })
+        return places
+      }, [])
   document.querySelector('#places-list').innerHTML = visitedPlaces.map((place) => `
     <article class="place-item">
       <span class="place-pin">${icon('pin')}</span>
@@ -590,6 +668,11 @@ document.querySelector('#profile-select').addEventListener('change', (event) => 
   loadTreeProgress()
   renderTreeProgress()
   renderPeriod(selectedPeriod)
+})
+
+window.addEventListener('raiz-urbana:session', (event) => {
+  if (event.detail) applyAccountProfile(event.detail)
+  else switchToDemoProfile()
 })
 
 renderPeriod(selectedPeriod)

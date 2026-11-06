@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   createRecord as createRecordRequest,
   deleteRecord as deleteRecordRequest,
   getRecords,
   updateRecord as updateRecordRequest,
 } from '../services/recordsApi.js'
+import { getCurrentSession } from '../services/authApi.js'
 
 let nextLocalId = 0
 
@@ -13,17 +14,27 @@ export function useCommunityRecords() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
+  const refreshSequence = useRef(0)
 
   const refreshRecords = useCallback(async (signal) => {
+    const requestId = ++refreshSequence.current
+    const sessionIdAtStart = getCurrentSession()?.id ?? null
     setIsLoading(true)
     setError('')
     try {
-      setRecords(await getRecords(signal))
+      const fetchedRecords = await getRecords(signal)
+      const currentSessionId = getCurrentSession()?.id ?? null
+      if (requestId === refreshSequence.current && sessionIdAtStart === currentSessionId) {
+        setRecords(fetchedRecords)
+      }
     } catch (requestError) {
       if (requestError.name === 'AbortError') return
-      setError(requestError.message || 'Não foi possível consultar os registros.')
+      const currentSessionId = getCurrentSession()?.id ?? null
+      if (requestId === refreshSequence.current && sessionIdAtStart === currentSessionId) {
+        setError(requestError.message || 'Não foi possível consultar os registros.')
+      }
     } finally {
-      if (!signal?.aborted) setIsLoading(false)
+      if (!signal?.aborted && requestId === refreshSequence.current) setIsLoading(false)
     }
   }, [])
 
@@ -33,40 +44,73 @@ export function useCommunityRecords() {
     return () => controller.abort()
   }, [refreshRecords])
 
+  useEffect(() => {
+    const handleSessionChange = () => {
+      setRecords([])
+      setError('')
+      refreshRecords()
+    }
+    window.addEventListener('raiz-urbana:session', handleSessionChange)
+    return () => window.removeEventListener('raiz-urbana:session', handleSessionChange)
+  }, [refreshRecords])
+
   const runMutation = async (request, applyChanges) => {
+    const sessionIdAtStart = getCurrentSession()?.id ?? null
     setIsSaving(true)
     setError('')
     try {
       const result = await request()
       applyChanges(result)
     } catch (requestError) {
-      setError(requestError.message || 'Não foi possível salvar as alterações.')
+      if (sessionIdAtStart === (getCurrentSession()?.id ?? null)) {
+        setError(requestError.message || 'Não foi possível salvar as alterações.')
+      }
       throw requestError
     } finally {
       setIsSaving(false)
     }
   }
 
-  const addRecord = (record) => runMutation(
-    () => createRecordRequest(record),
-    (result) => setRecords((current) => [{
-      ...record,
-      id: `demo-${Date.now()}-${nextLocalId++}`,
-      apiId: result.id,
-    }, ...current]),
-  )
+  const addRecord = (record) => {
+    const sessionIdAtStart = getCurrentSession()?.id ?? null
+    return runMutation(
+      () => createRecordRequest(record),
+      (result) => {
+        if (sessionIdAtStart !== (getCurrentSession()?.id ?? null)) return
+        setRecords((current) => sessionIdAtStart
+          ? [result, ...current]
+          : [{
+            ...record,
+            id: `demo-${Date.now()}-${nextLocalId++}`,
+            apiId: result.id,
+          }, ...current])
+      },
+    )
+  }
 
-  const editRecord = (record) => runMutation(
-    () => updateRecordRequest(record),
-    () => setRecords((current) => current.map((item) => item.id === record.id
-      ? { ...item, title: record.title, body: record.body, userId: record.userId }
-      : item)),
-  )
+  const editRecord = (record) => {
+    const sessionIdAtStart = getCurrentSession()?.id ?? null
+    return runMutation(
+      () => updateRecordRequest(record),
+      () => {
+        if (sessionIdAtStart !== (getCurrentSession()?.id ?? null)) return
+        setRecords((current) => current.map((item) => item.id === record.id
+          ? { ...item, title: record.title, body: record.body, userId: record.userId }
+          : item))
+      },
+    )
+  }
 
-  const removeRecord = (record) => runMutation(
-    () => deleteRecordRequest(record),
-    () => setRecords((current) => current.filter((item) => item.id !== record.id)),
-  )
+  const removeRecord = (record) => {
+    const sessionIdAtStart = getCurrentSession()?.id ?? null
+    return runMutation(
+      () => deleteRecordRequest(record),
+      () => {
+        if (sessionIdAtStart !== (getCurrentSession()?.id ?? null)) return
+        setRecords((current) => current.filter((item) => item.id !== record.id))
+      },
+    )
+  }
 
   return {
     records,
