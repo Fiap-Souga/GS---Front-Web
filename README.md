@@ -91,3 +91,9 @@ O site carrega imagens do Unsplash e fontes do Google Fonts, portanto esses recu
 Depois de autenticar a Vercel CLI (`npx vercel login`), execute `npx vercel` para criar uma prévia e `npx vercel --prod` para publicar em produção. A configuração de build usa `npm run build` e a pasta `dist/`.
 
 A configuração atual da Vercel publica apenas o site estático; ela não acessa o arquivo no seu computador. O armazenamento JSON local não deve ser usado como banco de produção em uma hospedagem serverless.
+
+### Contas na versão publicada
+
+Na Vercel, o build detecta a variável de ambiente `VERCEL=1` e ativa contas locais no navegador, sem enviar login, senha ou dados pessoais à API. A senha deriva uma chave criptográfica; perfil, visitas, hábitos e planos são cifrados no `localStorage` antes de serem salvos. A senha original não é armazenada.
+
+Esse modo é apenas para demonstração: cada navegador tem suas próprias contas e dados, não há sincronização entre aparelhos ou entre o site publicado e o JSON do computador, e limpar os dados do navegador apaga as contas. Não é uma autenticação centralizada nem substitui um servidor para uso real. Para testar esse modo em outro ambiente, defina `VITE_BROWSER_ACCOUNTS=true` durante o build.

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { getCurrentSession, login, logout, register, restoreSession, updateProfile } from '../services/authApi.js'
+import { isBrowserAccountMode } from '../services/accountMode.js'
 
 export function AccountPanel() {
   const [profile, setProfile] = useState(getCurrentSession())
@@ -35,7 +36,9 @@ export function AccountPanel() {
       setProfile(signedInProfile)
       setName(signedInProfile.name)
       setPassword('')
-      setNotice('Sua conta foi criada. Seus dados ficam salvos neste computador.')
+      setNotice(isBrowserAccountMode
+        ? 'Conta criada neste navegador. Entre novamente com seu e-mail e senha para acessar seus dados.'
+        : 'Sua conta foi criada. Seus dados ficam salvos neste computador.')
     } catch (requestError) {
       setError(requestError.message)
     } finally {
@@ -98,7 +101,9 @@ export function AccountPanel() {
             <div>
               <span className="profile-eyebrow">SEU ESPAÇO PESSOAL</span>
               <h2 id="account-panel-title">Salve seus planos e sua árvore</h2>
-              <p>Crie uma conta ou entre para guardar seus dados pessoais neste computador.</p>
+              <p>{isBrowserAccountMode
+                ? 'Crie uma conta ou entre para acessar seus dados salvos neste navegador.'
+                : 'Crie uma conta ou entre para guardar seus dados pessoais neste computador.'}</p>
             </div>
           </div>
           <div className="account-mode-switch" role="group" aria-label="Acesso à conta">
@@ -125,7 +130,9 @@ export function AccountPanel() {
       )}
       {error && <p className="account-message account-error" role="alert">{error}</p>}
       {notice && <p className="account-message" role="status">{notice}</p>}
-      <p className="account-privacy-note">A senha é armazenada como hash protegido; suas informações de perfil não são públicas.</p>
+      <p className="account-privacy-note">{isBrowserAccountMode
+        ? 'Demonstração: seus dados ficam criptografados neste navegador. Não sincronizam com outros aparelhos; limpar os dados do navegador os apaga. Este login não substitui autenticação de um serviço hospedado.'
+        : 'A senha é armazenada como hash protegido; suas informações de perfil não são públicas.'}</p>
     </section>
   )
 }

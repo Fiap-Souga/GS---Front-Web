@@ -1,3 +1,16 @@
+import { isBrowserAccountMode } from './accountMode.js'
+import {
+  createBrowserAccountPlan,
+  deleteBrowserAccountPlan,
+  getBrowserAccountPlans,
+  getBrowserAccountProfile,
+  loginBrowserAccount,
+  logoutBrowserAccount,
+  registerBrowserAccount,
+  updateBrowserAccountPlan,
+  updateBrowserAccountProfile,
+} from './browserAccountStore.js'
+
 export const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
 
 let currentProfile = null
@@ -70,6 +83,22 @@ const apiRequest = async (path, options = {}) => {
 }
 
 export async function authenticatedRequest(path, options = {}) {
+  if (isBrowserAccountMode) {
+    if (path === '/api/plans' && (!options.method || options.method === 'GET')) {
+      return getBrowserAccountPlans()
+    }
+    if (path === '/api/plans' && options.method === 'POST') {
+      return createBrowserAccountPlan(JSON.parse(options.body))
+    }
+    const planMatch = path.match(/^\/api\/plans\/([^/]+)$/)
+    if (planMatch && options.method === 'PUT') {
+      return updateBrowserAccountPlan(planMatch[1], JSON.parse(options.body))
+    }
+    if (planMatch && options.method === 'DELETE') {
+      return deleteBrowserAccountPlan(planMatch[1])
+    }
+    throw new Error('Esta operação não está disponível no armazenamento deste navegador.')
+  }
   await ensureCsrfToken()
   return apiRequest(path, options)
 }
@@ -84,6 +113,11 @@ const loadProfile = async () => {
 export const getCurrentSession = () => currentProfile
 
 export async function restoreSession() {
+  if (isBrowserAccountMode) {
+    currentProfile = getBrowserAccountProfile()
+    notifySessionChange()
+    return currentProfile
+  }
   await ensureCsrfToken()
   try {
     return await loadProfile()
@@ -98,6 +132,13 @@ export async function restoreSession() {
 }
 
 const authenticate = async (path, values) => {
+  if (isBrowserAccountMode) {
+    currentProfile = path.endsWith('/register')
+      ? await registerBrowserAccount(values)
+      : await loginBrowserAccount(values.email, values.password)
+    notifySessionChange()
+    return currentProfile
+  }
   await ensureCsrfToken()
   const data = await apiRequest(path, {
     method: 'POST',
@@ -111,6 +152,12 @@ export const register = (values) => authenticate('/api/auth/register', values)
 export const login = (values) => authenticate('/api/auth/login', values)
 
 export async function logout() {
+  if (isBrowserAccountMode) {
+    logoutBrowserAccount()
+    currentProfile = null
+    notifySessionChange()
+    return
+  }
   await ensureCsrfToken()
   await apiRequest('/api/auth/logout', { method: 'POST' })
   currentProfile = null
@@ -119,6 +166,11 @@ export async function logout() {
 }
 
 export async function updateProfile(name) {
+  if (isBrowserAccountMode) {
+    currentProfile = await updateBrowserAccountProfile((profile) => ({ ...profile, name }))
+    notifySessionChange()
+    return currentProfile
+  }
   const data = await apiRequest('/api/profile', {
     method: 'PATCH',
     body: JSON.stringify({ name }),
@@ -129,6 +181,14 @@ export async function updateProfile(name) {
 }
 
 export async function addTreeVisit(place) {
+  if (isBrowserAccountMode) {
+    currentProfile = await updateBrowserAccountProfile((profile) => ({
+      ...profile,
+      treeVisits: [...(profile.treeVisits ?? []), { place, visitedAt: new Date().toISOString() }].slice(-1000),
+    }))
+    notifySessionChange()
+    return currentProfile
+  }
   const data = await apiRequest('/api/profile/tree-visits', {
     method: 'POST',
     body: JSON.stringify({ place }),
@@ -139,6 +199,11 @@ export async function addTreeVisit(place) {
 }
 
 export async function resetTreeVisits() {
+  if (isBrowserAccountMode) {
+    currentProfile = await updateBrowserAccountProfile((profile) => ({ ...profile, treeVisits: [] }))
+    notifySessionChange()
+    return currentProfile
+  }
   const data = await apiRequest('/api/profile/tree-visits', { method: 'DELETE' })
   currentProfile = data.profile
   notifySessionChange()
@@ -146,6 +211,18 @@ export async function resetTreeVisits() {
 }
 
 export async function saveHabitEntry(entry, isEditing = false) {
+  if (isBrowserAccountMode) {
+    currentProfile = await updateBrowserAccountProfile((profile) => {
+      const entries = profile.habitEntries ?? []
+      const filtered = entries.filter((item) => item.date !== entry.date)
+      return {
+        ...profile,
+        habitEntries: [entry, ...filtered].sort((left, right) => right.date.localeCompare(left.date)),
+      }
+    })
+    notifySessionChange()
+    return currentProfile
+  }
   const path = isEditing
     ? `/api/profile/habit-entries/${encodeURIComponent(entry.date)}`
     : '/api/profile/habit-entries'
@@ -159,6 +236,14 @@ export async function saveHabitEntry(entry, isEditing = false) {
 }
 
 export async function deleteHabitEntry(date) {
+  if (isBrowserAccountMode) {
+    currentProfile = await updateBrowserAccountProfile((profile) => ({
+      ...profile,
+      habitEntries: (profile.habitEntries ?? []).filter((entry) => entry.date !== date),
+    }))
+    notifySessionChange()
+    return currentProfile
+  }
   const data = await apiRequest(`/api/profile/habit-entries/${encodeURIComponent(date)}`, {
     method: 'DELETE',
   })
