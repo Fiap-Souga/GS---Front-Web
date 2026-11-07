@@ -182,7 +182,10 @@ document.querySelector('#app').innerHTML = `
             <option value="Parque Villa-Lobos">Parque Villa-Lobos</option>
             <option value="Praça das Corujas">Praça das Corujas</option>
             <option value="Praça Benedito Calixto">Praça Benedito Calixto</option>
+            <option value="custom">Outro lugar...</option>
           </select>
+          <label class="visually-hidden" for="custom-tree-place">Nome do parque ou área verde</label>
+          <input id="custom-tree-place" type="text" maxlength="100" placeholder="Digite o nome do lugar" autocomplete="off" hidden />
           <button id="register-tree-visit" type="button">${icon('pin')} Registrar visita</button>
           <button class="tree-reset-button" id="reset-tree" type="button">Reiniciar árvore</button>
         </div>
@@ -255,6 +258,7 @@ let selectedDayIndex = 0
 let selectedProfileId = 'ana'
 let treeVisitCount = 0
 let lastTreeVisitPlace = ''
+let localTreeVisits = []
 let treeStorageAvailable = true
 let currentAccount = getCurrentSession()
 const treeMilestones = [1, 3, 6, 10]
@@ -429,16 +433,30 @@ const getProfilePeriod = (period) => {
 const loadTreeProgress = () => {
   treeVisitCount = 0
   lastTreeVisitPlace = ''
+  localTreeVisits = []
   treeStorageAvailable = true
   try {
     const savedTree = localStorage.getItem(getTreeStorageKey())
     if (savedTree !== null) {
       const parsedTree = JSON.parse(savedTree)
-      if (!Number.isSafeInteger(parsedTree.visits) || parsedTree.visits < 0 || (parsedTree.lastPlace !== undefined && typeof parsedTree.lastPlace !== 'string')) {
+      if (
+        !Number.isSafeInteger(parsedTree.visits)
+        || parsedTree.visits < 0
+        || (parsedTree.lastPlace !== undefined && typeof parsedTree.lastPlace !== 'string')
+        || (parsedTree.visitedPlaces !== undefined && (
+          !Array.isArray(parsedTree.visitedPlaces)
+          || parsedTree.visitedPlaces.some((visit) => (
+            !visit
+            || typeof visit.place !== 'string'
+            || typeof visit.visitedAt !== 'string'
+          ))
+        ))
+      ) {
         throw new Error('O progresso salvo da árvore está inválido.')
       }
       treeVisitCount = parsedTree.visits
       lastTreeVisitPlace = parsedTree.lastPlace ?? ''
+      localTreeVisits = parsedTree.visitedPlaces ?? []
     }
   } catch (error) {
     treeStorageAvailable = false
@@ -451,6 +469,7 @@ const applyAccountProfile = (profile) => {
   currentAccount = profile
   document.querySelector('.profile-main').classList.add('is-personal-account')
   const treeVisits = profile.treeVisits ?? []
+  localTreeVisits = treeVisits
   treeVisitCount = treeVisits.length
   lastTreeVisitPlace = treeVisits.at(-1)?.place ?? ''
   treeStorageAvailable = true
@@ -507,14 +526,40 @@ const renderTreeProgress = () => {
   }
 }
 
+document.querySelector('#tree-park-select').addEventListener('change', (event) => {
+  const customPlaceInput = document.querySelector('#custom-tree-place')
+  const isCustomPlace = event.target.value === 'custom'
+  customPlaceInput.hidden = !isCustomPlace
+  customPlaceInput.required = isCustomPlace
+  customPlaceInput.setCustomValidity('')
+  if (isCustomPlace) customPlaceInput.focus()
+})
+
 document.querySelector('#register-tree-visit').addEventListener('click', async (event) => {
   const registerButton = event.currentTarget
-  const place = document.querySelector('#tree-park-select').value
+  const placeSelect = document.querySelector('#tree-park-select')
+  const customPlaceInput = document.querySelector('#custom-tree-place')
+  const place = placeSelect.value === 'custom'
+    ? customPlaceInput.value.trim()
+    : placeSelect.value
+  if (!place || place.length > 100) {
+    customPlaceInput.setCustomValidity(
+      !place ? 'Digite o nome do parque ou da área verde.' : 'O nome do lugar deve ter no máximo 100 caracteres.',
+    )
+    customPlaceInput.reportValidity()
+    customPlaceInput.focus()
+    return
+  }
+  customPlaceInput.setCustomValidity('')
   if (currentAccount) {
     registerButton.disabled = true
     try {
       const profile = await addTreeVisit(place)
       applyAccountProfile(profile)
+      placeSelect.value = 'Parque Ibirapuera'
+      customPlaceInput.value = ''
+      customPlaceInput.hidden = true
+      customPlaceInput.required = false
       treeVisitStatus.textContent = `Visita ao ${place} registrada e salva na sua conta.`
     } catch (error) {
       treeVisitStatus.textContent = `Não foi possível registrar a visita: ${error.message}`
@@ -526,12 +571,14 @@ document.querySelector('#register-tree-visit').addEventListener('click', async (
 
   lastTreeVisitPlace = place
   treeVisitCount += 1
+  localTreeVisits = [...localTreeVisits, { place, visitedAt: new Date().toISOString() }].slice(-1000)
   renderTreeProgress()
 
   try {
     localStorage.setItem(getTreeStorageKey(), JSON.stringify({
       visits: treeVisitCount,
       lastPlace: lastTreeVisitPlace,
+      visitedPlaces: localTreeVisits,
     }))
     treeStorageAvailable = true
     treeVisitStatus.textContent = `Visita ao ${lastTreeVisitPlace} registrada! Sua árvore está crescendo. O progresso fica salvo neste navegador.`
@@ -540,6 +587,11 @@ document.querySelector('#register-tree-visit').addEventListener('click', async (
     console.error('Não foi possível salvar o progresso da árvore.', error)
     treeVisitStatus.textContent = 'Visita contabilizada nesta sessão, mas não foi possível salvar o progresso neste navegador.'
   }
+  placeSelect.value = 'Parque Ibirapuera'
+  customPlaceInput.value = ''
+  customPlaceInput.hidden = true
+  customPlaceInput.required = false
+  renderPeriod(selectedPeriod)
 })
 
 document.querySelector('#reset-tree').addEventListener('click', async (event) => {
@@ -560,6 +612,7 @@ document.querySelector('#reset-tree').addEventListener('click', async (event) =>
 
   treeVisitCount = 0
   lastTreeVisitPlace = ''
+  localTreeVisits = []
   renderTreeProgress()
 
   try {
@@ -571,6 +624,7 @@ document.querySelector('#reset-tree').addEventListener('click', async (event) =>
     console.error('Não foi possível reiniciar o progresso salvo da árvore.', error)
     treeVisitStatus.textContent = 'Árvore reiniciada nesta sessão, mas não foi possível apagar o progresso salvo neste navegador.'
   }
+  renderPeriod(selectedPeriod)
 })
 
 loadTreeProgress()
@@ -593,7 +647,11 @@ const renderPeriod = (period) => {
   document.querySelector('#water-average').textContent = data.waterAverage
   document.querySelector('#walking-distance').textContent = data.distance
   document.querySelector('#walking-steps').textContent = data.steps
-  const greenVisitCount = currentAccount ? currentAccount.treeVisits.length : data.greenPlaces
+  const greenVisitCount = currentAccount
+    ? currentAccount.treeVisits.length
+    : localTreeVisits.length > 0
+      ? treeVisitCount
+      : data.greenPlaces
   document.querySelector('#green-visits').textContent = greenVisitCount
   document.querySelector('#chart-total').textContent = data.minutes
   document.querySelector('#movement-goal-label').textContent = `${data.exercise} de ${period === 'week' ? '4' : '16'} sessões`
@@ -611,10 +669,11 @@ const renderPeriod = (period) => {
   document.querySelector('#compare-water').textContent = `${data.waterAverage} L/dia`
   document.querySelector('#compare-green').textContent = `${greenVisitCount} visitas`
   document.querySelector('#group-green').textContent = period === 'week' ? '3 visitas' : '7 visitas'
-  document.querySelector('#places-count').textContent = greenVisitCount
   document.querySelector('#chart-total').textContent = data.minutes
   document.querySelector('.places-note').textContent = currentAccount
     ? 'Visitas que você registrou manualmente. Nenhuma localização é rastreada.'
+    : localTreeVisits.length > 0
+      ? 'Locais que você registrou manualmente neste navegador. Nenhuma localização é rastreada.'
     : period === 'week'
       ? 'Locais fictícios para demonstrar como futuras visitas registradas pelo aplicativo poderiam aparecer aqui.'
       : 'Resumo fictício do mês. Locais sem nomes de pessoas ou dados identificáveis.'
@@ -638,28 +697,49 @@ const renderPeriod = (period) => {
     })
   })
 
-  const visitedPlaces = currentAccount
-    ? currentAccount.treeVisits.reduce((places, visit) => {
-      const existingPlace = places.find((place) => place.name === visit.place)
-      if (existingPlace) existingPlace.visits += 1
-      else places.push({ name: visit.place, visits: 1 })
-      return places
-    }, [])
+  const recordedVisits = currentAccount ? currentAccount.treeVisits ?? [] : localTreeVisits
+  const demoVisits = localTreeVisits.length > 0 || currentAccount
+    ? []
     : data.days
       .filter((day) => day.place !== 'Nenhuma área verde registrada')
-      .reduce((places, day) => {
-        const existingPlace = places.find((place) => place.name === day.place)
-        if (existingPlace) existingPlace.visits += 1
-        else places.push({ name: day.place, visits: 1 })
-        return places
-      }, [])
-  document.querySelector('#places-list').innerHTML = visitedPlaces.map((place) => `
-    <article class="place-item">
-      <span class="place-pin">${icon('pin')}</span>
-      <span class="place-copy"><strong>${place.name}</strong><small>Área verde · visita demonstrativa</small></span>
-      <span class="place-visits">${place.visits} ${place.visits === 1 ? 'visita' : 'visitas'}</span>
-    </article>
-  `).join('')
+      .map((day) => ({ place: day.place, isDemo: true }))
+  const visitedPlaces = [...recordedVisits.map((visit) => ({ ...visit, isDemo: false })), ...demoVisits]
+    .reduce((places, visit) => {
+      const existingPlace = places.find((place) => place.name === visit.place)
+      if (existingPlace) {
+        existingPlace.visits += 1
+        existingPlace.isDemo = existingPlace.isDemo && visit.isDemo
+      } else {
+        places.push({ name: visit.place, visits: 1, isDemo: visit.isDemo })
+      }
+      return places
+    }, [])
+  const placesList = document.querySelector('#places-list')
+  placesList.replaceChildren(...visitedPlaces.map((place) => {
+    const item = document.createElement('article')
+    item.className = 'place-item'
+
+    const pin = document.createElement('span')
+    pin.className = 'place-pin'
+    pin.innerHTML = icon('pin')
+
+    const copy = document.createElement('span')
+    copy.className = 'place-copy'
+    const name = document.createElement('strong')
+    name.textContent = place.name
+    const description = document.createElement('small')
+    description.textContent = place.isDemo ? 'Área verde · visita demonstrativa' : 'Área verde · registrada por você'
+    copy.append(name, description)
+
+    const count = document.createElement('span')
+    count.className = 'place-visits'
+    count.textContent = `${place.visits} ${place.visits === 1 ? 'visita' : 'visitas'}`
+    item.append(pin, copy, count)
+    return item
+  }))
+  document.querySelector('#places-count').textContent = String(
+    visitedPlaces.reduce((total, place) => total + place.visits, 0),
+  )
 
   updateDayDetail(data.days[selectedDayIndex])
 }

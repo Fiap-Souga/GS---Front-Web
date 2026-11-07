@@ -1,12 +1,7 @@
 import { Router } from 'express'
 
 const MAX_TREE_VISITS = 1000
-const VALID_PLACES = new Set([
-  'Parque Ibirapuera',
-  'Parque Villa-Lobos',
-  'Praça das Corujas',
-  'Praça Benedito Calixto',
-])
+const MAX_PLACE_NAME_LENGTH = 100
 
 const publicProfile = (user) => ({
   id: user.id,
@@ -79,9 +74,9 @@ export function createProfileRouter({ userRepository, requireAuth }) {
   })
 
   router.post('/tree-visits', requireAuth, async (request, response, next) => {
-    const place = request.body?.place
-    if (typeof place !== 'string' || !VALID_PLACES.has(place)) {
-      return response.status(400).json({ error: 'Selecione uma área verde válida.' })
+    const place = typeof request.body?.place === 'string' ? request.body.place.trim() : ''
+    if (!place || place.length > MAX_PLACE_NAME_LENGTH) {
+      return response.status(400).json({ error: 'Informe um local com até 100 caracteres.' })
     }
 
     try {

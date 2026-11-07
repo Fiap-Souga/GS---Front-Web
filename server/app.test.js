@@ -237,6 +237,27 @@ describe('API de autenticação', () => {
     expect(rejected.status).toBe(403)
     expect(accepted.status).toBe(201)
     expect(accepted.body.profile.treeVisits).toHaveLength(1)
+
+    const customPlace = await request(app)
+      .post('/api/profile/tree-visits')
+      .set('Cookie', session.cookie)
+      .set('X-CSRF-Token', session.csrfToken)
+      .send({ place: '  Horto comunitário  ' })
+    const emptyPlace = await request(app)
+      .post('/api/profile/tree-visits')
+      .set('Cookie', session.cookie)
+      .set('X-CSRF-Token', session.csrfToken)
+      .send({ place: '   ' })
+    const longPlace = await request(app)
+      .post('/api/profile/tree-visits')
+      .set('Cookie', session.cookie)
+      .set('X-CSRF-Token', session.csrfToken)
+      .send({ place: 'a'.repeat(101) })
+
+    expect(customPlace.status).toBe(201)
+    expect(customPlace.body.profile.treeVisits[1].place).toBe('Horto comunitário')
+    expect(emptyPlace.status).toBe(400)
+    expect(longPlace.status).toBe(400)
   })
 
   it('mantém planos isolados por conta e persiste o CRUD', async () => {

@@ -45,7 +45,7 @@ O build gera os arquivos estáticos em `dist/`.
 ### Perfil — `/perfil.html`
 
 - Cadastro, login e edição de nome de perfil.
-- Registros pessoais de atividade, água, passos e visitas a áreas verdes.
+- Registros pessoais de atividade, água, passos e visitas a áreas verdes, incluindo parques ou lugares personalizados.
 - Árvore digital, resumo de hábitos, gráfico semanal e exportação CSV.
 - Painel de planos comunitários, com busca e filtro por região.
 - Tour para conhecer as áreas do perfil e controles de acessibilidade para ampliar o conteúdo.
