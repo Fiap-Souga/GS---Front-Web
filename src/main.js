@@ -1,5 +1,6 @@
 import './style.css'
 import { initAccessibilityControls } from './accessibility.js'
+import { initInterestForm } from './services/interestForm.js'
 
 const icon = (name, className = '') => {
   const paths = {
@@ -242,10 +243,14 @@ document.querySelector('#app').innerHTML = `
       <div class="join-content">
         <div class="section-kicker section-kicker-light">A CIDADE TAMBÉM É SUA</div>
         <h2>Vamos fazer<br />florescer <span>juntos?</span></h2>
-        <p>Uma ideia ganha raízes quando encontra outras pessoas. Deixe seu e-mail para registrar interesse nesta demonstração.</p>
-        <form class="join-form" id="join-form"><label class="visually-hidden" for="email">Seu e-mail</label><input id="email" name="email" type="email" placeholder="Seu melhor e-mail" required /><button type="submit">Quero participar ${icon('arrow')}</button></form>
-        <p class="form-message" id="form-message" aria-live="polite"></p>
-        <span class="join-footnote">Prévia sem integração: nenhum dado será enviado ou armazenado.</span>
+        <p>Gostou do projeto? Deixe seu e-mail para receber novidades e acompanhar os próximos passos.</p>
+        <form class="join-form" id="join-form">
+          <label class="visually-hidden" for="interest-email">Seu e-mail</label>
+          <input id="interest-email" name="email" type="email" placeholder="Seu melhor e-mail" autocomplete="email" maxlength="254" required />
+          <button type="submit">Quero receber novidades ${icon('arrow')}</button>
+        </form>
+        <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+        <span class="join-footnote">Seu e-mail será enviado ao Formspree e ficará disponível no painel do projeto.</span>
       </div>
       <div class="join-side-label">PLANTE UMA IDEIA.<br />CULTIVE O FUTURO.</div>
     </section>
@@ -872,12 +877,6 @@ document.querySelector('#event-interest').addEventListener('click', (event) => {
     : 'Interesse anotado apenas nesta sessão. O encontro é fictício.'
 })
 
-document.querySelector('#join-form').addEventListener('submit', (event) => {
-  event.preventDefault()
-  const email = document.querySelector('#email')
-  if (!email.reportValidity()) return
-  document.querySelector('#form-message').textContent = 'Obrigado por chegar junto! Esta prévia não envia nem armazena seu e-mail.'
-  event.target.reset()
-})
+initInterestForm()
 
 selectNeighborhood(selectedNeighborhood)

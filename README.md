@@ -54,6 +54,10 @@ Sem login, a página mostra perfis e iniciativas demonstrativos; alterações ne
 
 Antes de aceitar usuários reais, publique uma política de privacidade adequada à LGPD, defina retenção e exclusão de contas, configure backups e recuperação, e faça uma revisão de segurança e operação do ambiente hospedado.
 
+### Cadastro para receber atualizações
+
+O formulário no final da página inicial envia o e-mail ao Formspree (`https://formspree.io/f/xeaawgoz`) para registrar interesse em receber atualizações. Os envios podem ser consultados na caixa de entrada do formulário na conta Formspree que administra esse endpoint. A aplicação não mantém uma cópia local desses cadastros. Para usar o formulário, confirme o endpoint e conclua a ativação/confirmação solicitada pelo Formspree na conta responsável.
+
 ## Páginas
 
 - `/` — apresentação do projeto, áreas prioritárias, monitoramento e participação.
