@@ -38,7 +38,7 @@ O build gera os arquivos estáticos em `dist/`.
 ### Página inicial — `/`
 
 - Apresentação da proposta e das ações da Raiz Urbana.
-- Mapa esquemático de regiões e indicadores climáticos demonstrativos.
+- Diagrama ilustrativo de regiões com condições meteorológicas atuais e previsão fornecidas pela Open-Meteo.
 - Leitura guiada por capítulos e apresentação em slides.
 - Formulário de interesse para receber novidades.
 
@@ -60,7 +60,9 @@ O build gera os arquivos estáticos em `dist/`.
 - `src/components/`: painéis React.
 - `server/`: API, rotas, modelos e armazenamento JSON local.
 
-As leituras de clima, estatísticas e iniciativas sem login são demonstrativas. Não há integração real com sensores ou localização.
+As condições climáticas consultam a API pública da Open-Meteo, sem chave de API. São estimativas de modelos meteorológicos para as coordenadas consultadas, não medições de sensores instalados no bairro; a resolução do modelo pode apontar para uma grade próxima. A qualidade do ar usa o índice US AQI e pode aparecer como indisponível se a fonte não responder. O diagrama de regiões é ilustrativo e não representa posições cartográficas.
+
+Outras estatísticas e iniciativas apresentadas sem login são conteúdo demonstrativo ou conceitual. Não há integração com sensores locais nem rastreamento de localização.
 
 ## Modos de conta
 
@@ -132,6 +134,6 @@ Na Vercel, as contas usam o modo local do navegador descrito acima. Isso é adeq
 - O login pela API local usa senha com hash bcrypt e sessão protegida por cookie.
 - No modo de conta do navegador, os dados são criptografados antes de serem salvos localmente.
 - O formulário de interesse envia o e-mail ao Formspree.
-- Estatísticas climáticas, mapas e perfis apresentados sem login são fictícios; não há monitoramento automático de atividade ou localização.
+- As condições climáticas vêm da Open-Meteo e são estimativas de modelos, não medições locais. Mapas esquemáticos e iniciativas sem login são demonstrativos; não há monitoramento automático de atividade ou localização.
 
 Antes de coletar dados de usuários reais, publique uma política de privacidade adequada à LGPD e defina procedimentos de retenção, exclusão, segurança e atendimento aos titulares.

@@ -1,6 +1,7 @@
 import './style.css'
 import { initAccessibilityControls } from './accessibility.js'
 import { initInterestForm } from './services/interestForm.js'
+import { clearWeatherCache, getWeatherReading } from './services/weather.js'
 
 const icon = (name, className = '') => {
   const paths = {
@@ -26,18 +27,6 @@ const icon = (name, className = '') => {
   }
 
   return `<svg class="${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]}</svg>`
-}
-
-const neighborhoods = {
-  Pinheiros: { temp: 26, rain: 12, air: 'Boa', humidity: 61, emissions: 'Média', priority: 'Média', trees: '34%', offset: 0 },
-  'Vila Madalena': { temp: 24, rain: 18, air: 'Boa', humidity: 67, emissions: 'Baixa', priority: 'Baixa', trees: '46%', offset: 1 },
-  'Centro Histórico': { temp: 29, rain: 8, air: 'Atenção', humidity: 54, emissions: 'Alta', priority: 'Alta', trees: '12%', offset: 2 },
-}
-
-const temperatureHistory = {
-  Pinheiros: [21, 22, 23, 24, 24, 26, 27, 26, 25, 26, 25, 26],
-  'Vila Madalena': [20, 20, 21, 22, 23, 24, 25, 24, 23, 24, 23, 24],
-  'Centro Histórico': [23, 24, 26, 27, 28, 29, 30, 29, 28, 29, 28, 29],
 }
 
 document.querySelector('#app').innerHTML = `
@@ -72,22 +61,22 @@ document.querySelector('#app').innerHTML = `
         </div>
       </div>
       <div class="hero-visual">
-        <img class="hero-image" src="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1200&q=85" alt="Vista aérea de uma praça arborizada entre prédios da cidade" />
+        <img class="hero-image" src="https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1200&q=85" alt="Área urbana com edifícios e vegetação, imagem ilustrativa." />
         <div class="image-tint"></div>
         <div class="weather-card">
-          <div class="weather-card-top"><span class="weather-label">EXEMPLO DE LEITURA</span><span class="live-pill"><i></i> DEMO</span></div>
+          <div class="weather-card-top"><span class="weather-label">CONDIÇÕES DO TEMPO</span><span class="live-pill"><i></i> OPEN-METEO</span></div>
           <div class="weather-location">${icon('pin')} <span id="hero-neighborhood">Pinheiros, São Paulo</span></div>
-          <div class="temperature-row"><span class="sun-icon">☀</span><strong id="hero-temp">26°</strong><span class="weather-condition">Ensolarado<br />Sensação de 28°</span></div>
+          <div class="temperature-row"><span class="sun-icon" id="hero-weather-icon" aria-hidden="true">☁</span><strong id="hero-temp">—</strong><span class="weather-condition"><span id="hero-condition">Carregando…</span><br />Sensação <span id="hero-apparent-temp">—</span></span></div>
           <div class="weather-divider"></div>
           <div class="weather-details">
-            <div>${icon('rain')}<span>Chuva</span><strong id="hero-rain">12%</strong></div>
-            <div>${icon('wind')}<span>Umidade</span><strong id="hero-humidity">61%</strong></div>
-            <div>${icon('leaf')}<span>Qualidade do ar</span><strong class="air-good" id="hero-air">Boa</strong></div>
+            <div>${icon('rain')}<span id="hero-rain-label">Chance de chuva</span><strong id="hero-rain">—</strong></div>
+            <div>${icon('wind')}<span>Umidade</span><strong id="hero-humidity">—</strong></div>
+            <div>${icon('leaf')}<span>Qualidade do ar · US AQI</span><strong id="hero-air">—</strong></div>
           </div>
-          <p class="data-note">Dados demonstrativos · atualizados há 2 min</p>
+          <p class="data-note" id="hero-data-note">Consultando Open-Meteo…</p>
         </div>
         <div class="green-tag">${icon('leaf')} Mais sombra, menos calor</div>
-        <div class="hero-caption">Praça das Corujas <span>·</span> Pinheiros, SP</div>
+        <div class="hero-caption">Imagem ilustrativa <span>·</span> São Paulo</div>
       </div>
       <div class="hero-side-note">CUIDAR DO BAIRRO<br />É CUIDAR DO PLANETA</div>
     </section>
@@ -129,42 +118,40 @@ document.querySelector('#app').innerHTML = `
 
     <section class="priority-section section-wrap" id="areas-prioritarias">
       <div class="priority-heading">
-        <div><div class="section-kicker">UM MAPA PARA AGIR MELHOR</div><h2>Descubra onde o verde<br />pode fazer <span>diferença.</span></h2></div>
-        <p>Explore as regiões e veja como a combinação de calor, cobertura vegetal e emissões estimadas pode orientar as próximas ações.</p>
+        <div><div class="section-kicker">CONDIÇÕES DO TEMPO</div><h2>O clima de cada<br /><span>região.</span></h2></div>
+        <p>Consulte as condições atuais e a previsão para regiões de São Paulo. Os valores vêm de modelos meteorológicos próximos às coordenadas indicadas, não de sensores instalados nas ruas.</p>
       </div>
       <div class="priority-toolbar">
-        <div class="filter-group" role="group" aria-label="Filtrar regiões"><button class="filter-button is-active" type="button" data-priority-filter="all" aria-pressed="true">Todas as regiões</button><button class="filter-button" type="button" data-priority-filter="high" aria-pressed="false">Prioridade alta</button></div>
-        <span class="map-demo-note">${icon('pin')} Mapa esquemático · dados demonstrativos</span>
+        <span class="map-demo-note">${icon('pin')} Diagrama ilustrativo · posições não cartográficas</span>
       </div>
       <div class="priority-layout">
-        <div class="neighborhood-map" role="group" aria-label="Mapa esquemático das regiões">
+        <div class="neighborhood-map" role="group" aria-label="Diagrama ilustrativo das regiões disponíveis, sem escala geográfica">
           <div class="map-street map-street-one"></div><div class="map-street map-street-two"></div><div class="map-street map-street-three"></div>
           <span class="map-block map-block-one"></span><span class="map-block map-block-two"></span><span class="map-block map-block-three"></span><span class="map-block map-block-four"></span>
-                  <button class="map-marker marker-pinheiros" type="button" data-map-region="Pinheiros" data-priority="medium" aria-label="Selecionar Pinheiros"><span>01</span></button>
-                  <button class="map-marker marker-vila" type="button" data-map-region="Vila Madalena" data-priority="low" aria-label="Selecionar Vila Madalena"><span>02</span></button>
-                  <button class="map-marker marker-centro is-selected" type="button" data-map-region="Centro Histórico" data-priority="high" aria-label="Selecionar Centro Histórico"><span>03</span></button>
+          <button class="map-marker marker-pinheiros is-selected" type="button" data-map-region="Pinheiros" aria-label="Consultar o clima em Pinheiros"><span>•</span></button>
+          <button class="map-marker marker-vila" type="button" data-map-region="Vila Madalena" aria-label="Consultar o clima na Vila Madalena"><span>•</span></button>
+          <button class="map-marker marker-centro" type="button" data-map-region="Centro Histórico" aria-label="Consultar o clima no Centro Histórico"><span>•</span></button>
           <span class="map-label map-label-pinheiros">PINHEIROS</span><span class="map-label map-label-vila">VILA MADALENA</span><span class="map-label map-label-centro">CENTRO</span>
-          <div class="map-compass">N <span>↑</span></div>
-          <div class="map-scale"><i></i> REPRESENTAÇÃO ILUSTRATIVA</div>
+          <div class="map-scale">DIAGRAMA SEM ESCALA GEOGRÁFICA</div>
         </div>
         <div class="region-list">
-          <div class="region-list-heading"><span>REGIÕES MONITORADAS</span><span id="region-count">3 áreas</span></div>
-          <button class="region-card" type="button" data-map-region="Centro Histórico" data-priority="high">
-            <span class="region-rank">03</span><span class="region-card-copy"><strong>Centro Histórico</strong><small>Menor cobertura vegetal</small></span><span class="priority-badge priority-high">Alta ${icon('arrowUp')}</span>
+          <div class="region-list-heading"><span>REGIÕES DISPONÍVEIS</span><span>3 regiões</span></div>
+          <button class="region-card" type="button" data-map-region="Centro Histórico">
+            <span class="region-card-copy"><strong>Centro Histórico</strong><small data-region-weather="Centro Histórico">Consultando clima…</small></span><span class="region-weather-temp" data-region-temp="Centro Histórico">—</span>
           </button>
-          <button class="region-card" type="button" data-map-region="Pinheiros" data-priority="medium">
-            <span class="region-rank">01</span><span class="region-card-copy"><strong>Pinheiros</strong><small>Calor e verde em equilíbrio</small></span><span class="priority-badge">Média</span>
+          <button class="region-card" type="button" data-map-region="Pinheiros">
+            <span class="region-card-copy"><strong>Pinheiros</strong><small data-region-weather="Pinheiros">Consultando clima…</small></span><span class="region-weather-temp" data-region-temp="Pinheiros">—</span>
           </button>
-          <button class="region-card" type="button" data-map-region="Vila Madalena" data-priority="low">
-            <span class="region-rank">02</span><span class="region-card-copy"><strong>Vila Madalena</strong><small>Boa cobertura vegetal</small></span><span class="priority-badge priority-low">Baixa</span>
+          <button class="region-card" type="button" data-map-region="Vila Madalena">
+            <span class="region-card-copy"><strong>Vila Madalena</strong><small data-region-weather="Vila Madalena">Consultando clima…</small></span><span class="region-weather-temp" data-region-temp="Vila Madalena">—</span>
           </button>
           <div class="region-summary" aria-live="polite">
-            <div class="summary-top"><span id="summary-priority" class="priority-badge priority-high">Prioridade alta</span><span>ESTIMATIVA CONCEITUAL</span></div>
+            <div class="summary-top"><span>CONDIÇÕES ATUAIS</span><span>OPEN-METEO</span></div>
             <strong id="summary-neighborhood">Centro Histórico</strong>
-            <div class="summary-metrics"><span>Vegetação <b id="summary-trees">12%</b></span><span>Emissões <b id="summary-emissions">Alta*</b></span></div>
-            <a href="#monitoramento" class="summary-link" id="summary-explore">Explorar dados do bairro ${icon('arrow')}</a>
+            <div class="summary-metrics"><span>Temperatura <b id="summary-temp">—</b></span><span>Umidade <b id="summary-humidity">—</b></span></div>
+            <a href="#monitoramento" class="summary-link" id="summary-explore">Ver previsão horária ${icon('arrow')}</a>
           </div>
-          <p class="region-disclaimer">*Estimativas ilustrativas, sem dados de sensores ou inventário oficial de emissões.</p>
+          <p class="region-disclaimer">O ponto de grade meteorológica pode estar distante das coordenadas exatas do bairro.</p>
         </div>
       </div>
     </section>
@@ -174,25 +161,25 @@ document.querySelector('#app').innerHTML = `
         <div class="monitor-copy">
           <div class="section-kicker section-kicker-light">02 — O CLIMA, DE PERTO</div>
           <h2>Cada bairro tem<br />seu próprio <span>clima.</span></h2>
-          <p>Uma futura rede de totens conectados vai acompanhar as condições locais. Cruzados com estimativas de emissões e cobertura vegetal, esses dados ajudam a direcionar o reflorestamento para onde ele faz mais falta.</p>
+          <p>Consulte temperatura, sensação térmica, umidade, probabilidade de chuva e índice de qualidade do ar. São dados de modelos meteorológicos e atmosféricos próximos às coordenadas da região, não medições de sensores locais.</p>
           <label class="select-label" for="neighborhood-select">Explore uma região</label>
           <div class="select-wrap">${icon('pin')}<select id="neighborhood-select" aria-label="Selecione uma região"><option>Pinheiros</option><option>Vila Madalena</option><option>Centro Histórico</option></select><span class="select-chevron">⌄</span></div>
-          <span class="demo-label">Prévia ilustrativa do painel climático</span>
+          <span class="demo-label">Modelos atualizados pela fonte; resolução regional, não de rua.</span>
         </div>
         <div class="climate-panel">
-          <div class="panel-heading"><div><span class="panel-overline">PAINEL DA REGIÃO</span><h3 id="panel-neighborhood">Pinheiros, SP</h3></div><span class="panel-status"><i></i> DADOS ILUSTRATIVOS</span></div>
-          <div class="panel-main-metric"><span class="metric-icon">${icon('cloud')}</span><div><span class="metric-caption">TEMPERATURA ATUAL</span><strong id="metric-temp">26°</strong></div><span class="metric-subtext">Sensação<br />de 28°</span></div>
+          <div class="panel-heading"><div><span class="panel-overline">PREVISÃO REGIONAL</span><h3 id="panel-neighborhood">Pinheiros, SP</h3></div><span class="panel-status"><i></i> <span id="panel-status-text">CONSULTANDO</span></span></div>
+          <div class="panel-main-metric"><span class="metric-icon" id="metric-weather-icon" aria-hidden="true">☁</span><div><span class="metric-caption">TEMPERATURA ATUAL</span><strong id="metric-temp">—</strong></div><span class="metric-subtext">Sensação<br /><span id="metric-apparent-temp">—</span></span></div>
           <div class="chart-area">
-            <div class="chart-toolbar"><div class="chart-title"><span id="chart-title">Temperatura nas últimas 12 horas</span><span>°C</span></div><div class="chart-period" role="group" aria-label="Período do gráfico"><button class="period-button is-active" type="button" data-period="12" aria-pressed="true">12h</button><button class="period-button" type="button" data-period="24" aria-pressed="false">24h</button></div></div>
-            <div class="chart-grid"><span>30°</span><span>25°</span><span>20°</span><svg viewBox="0 0 520 132" preserveAspectRatio="none" role="img" aria-label="Gráfico demonstrativo de variação da temperatura"><defs><linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#b9d88c" stop-opacity=".32"/><stop offset="100%" stop-color="#b9d88c" stop-opacity="0"/></linearGradient></defs><path class="chart-fill" id="chart-fill" d="M0 94 C28 91 35 73 66 78 S105 93 132 72 S171 66 198 61 S238 82 264 64 S303 48 330 55 S368 39 396 45 S435 52 462 27 S498 34 520 13 L520 132 L0 132Z"/><path class="chart-line" id="chart-line" d="M0 94 C28 91 35 73 66 78 S105 93 132 72 S171 66 198 61 S238 82 264 64 S303 48 330 55 S368 39 396 45 S435 52 462 27 S498 34 520 13"/></svg></div>
-            <div class="chart-times" id="chart-times"><span>08h</span><span>11h</span><span>14h</span><span>17h</span><span>20h</span></div>
+            <div class="chart-toolbar"><div class="chart-title"><span id="chart-title">Previsão de temperatura para as próximas 12 horas</span><span>°C</span></div><div class="chart-period" role="group" aria-label="Período da previsão"><button class="period-button is-active" type="button" data-period="12" aria-pressed="true">12h</button><button class="period-button" type="button" data-period="24" aria-pressed="false">24h</button></div></div>
+            <div class="chart-grid"><span data-chart-axis="max">—</span><span data-chart-axis="middle">—</span><span data-chart-axis="min">—</span><svg viewBox="0 0 520 132" preserveAspectRatio="none" role="img" aria-label="Previsão horária de temperatura fornecida pelo Open-Meteo"><defs><linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#b9d88c" stop-opacity=".32"/><stop offset="100%" stop-color="#b9d88c" stop-opacity="0"/></linearGradient></defs><path class="chart-fill" id="chart-fill" d=""/><path class="chart-line" id="chart-line" d=""/></svg></div>
+            <div class="chart-times" id="chart-times"><span>—</span></div>
           </div>
           <div class="panel-bottom">
-            <div>${icon('rain')}<span>Chance de chuva</span><strong id="metric-rain">12%</strong></div>
-            <div>${icon('wind')}<span>Umidade do ar</span><strong id="metric-humidity">61%</strong></div>
-            <div>${icon('leaf')}<span>Qualidade do ar</span><strong class="air-good" id="metric-air">Boa</strong></div>
+            <div>${icon('rain')}<span id="metric-rain-label">Chance de chuva</span><strong id="metric-rain">—</strong></div>
+            <div>${icon('wind')}<span>Umidade do ar</span><strong id="metric-humidity">—</strong></div>
+            <div>${icon('leaf')}<span>Qualidade do ar · US AQI</span><strong class="air-good" id="metric-air">—</strong></div>
           </div>
-          <div class="panel-footer"><span class="panel-footnote" id="last-updated">Demonstração · nenhum totem conectado</span><button class="refresh-button" id="refresh-demo" type="button">${icon('refresh')} Atualizar demonstração</button></div>
+          <div class="panel-footer"><span class="panel-footnote" id="last-updated">Consultando fonte meteorológica…</span><button class="refresh-button" id="refresh-weather" type="button">${icon('refresh')} Atualizar dados</button></div>
         </div>
       </div>
     </section>
@@ -342,7 +329,8 @@ const regionButtons = [...document.querySelectorAll('[data-map-region]')]
 const challengeChecks = [...document.querySelectorAll('[data-challenge]')]
 let selectedNeighborhood = 'Pinheiros'
 let selectedPeriod = 12
-let refreshCount = 0
+const weatherReadings = new Map()
+const weatherRequests = new Map()
 const chapters = [
   { id: 'inicio', title: 'O começo', description: 'Uma cidade mais verde começa na sua rua', copy: 'Imagine uma cidade onde praças e pontos de ônibus ajudam as pessoas a viver melhor — com mais natureza, sombra e espaços acolhedores.', label: 'Uma cidade que respira melhor' },
   { id: 'projeto', title: 'A ideia', description: 'Como tecnologia e natureza se conectam', copy: 'A Raiz Urbana aproxima moradores, monitoramento climático e reflorestamento para transformar dados locais em cuidado coletivo.', label: 'Tecnologia a serviço da natureza' },
@@ -735,90 +723,215 @@ window.addEventListener('wheel', (event) => {
 
 setActiveChapter(0)
 
-const getReading = (neighborhood) => {
-  const data = neighborhoods[neighborhood]
-  const variation = refreshCount % 3 === 1 ? 1 : refreshCount % 3 === 2 ? -1 : 0
+const formatTemperature = (value) => Number.isFinite(value)
+  ? `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(value)}°`
+  : 'Indisponível'
 
-  return {
-    ...data,
-    currentTemp: data.temp + variation,
-    rain: `${String(Math.max(0, data.rain + variation * 2)).padStart(2, '0')}%`,
-    humidity: `${data.humidity - variation}%`,
+const formatPercent = (value) => Number.isFinite(value) ? `${Math.round(value)}%` : 'Indisponível'
+
+const formatHour = (time) => time?.slice(11, 16) ?? ''
+
+const renderChart = (reading) => {
+  const values = reading?.hourlyForecast?.slice(0, selectedPeriod) ?? []
+  const line = document.querySelector('#chart-line')
+  const fill = document.querySelector('#chart-fill')
+  const times = document.querySelector('#chart-times')
+  if (values.length < 2) {
+    line.setAttribute('d', '')
+    fill.setAttribute('d', '')
+    times.replaceChildren(Object.assign(document.createElement('span'), { textContent: 'Previsão indisponível' }))
+    document.querySelector('[data-chart-axis="max"]').textContent = '—'
+    document.querySelector('[data-chart-axis="middle"]').textContent = '—'
+    document.querySelector('[data-chart-axis="min"]').textContent = '—'
+    chartTitle.textContent = `Previsão de temperatura para as próximas ${selectedPeriod} horas`
+    return
   }
-}
 
-const updateChart = () => {
-  const history = temperatureHistory[selectedNeighborhood]
-  const values = selectedPeriod === 12 ? history.slice(-6) : history
-  const points = values.map((value, index) => {
-    const adjusted = value + (refreshCount % 3 === 1 ? 0.6 : refreshCount % 3 === 2 ? -0.5 : 0)
+  const temperatures = values.map((hour) => hour.temperature)
+  let minimum = Math.floor(Math.min(...temperatures) / 5) * 5
+  let maximum = Math.ceil(Math.max(...temperatures) / 5) * 5
+  if (minimum === maximum) {
+    minimum -= 2.5
+    maximum += 2.5
+  }
+  const points = values.map((hour, index) => {
     const x = (index / (values.length - 1)) * 520
-    const y = 118 - ((adjusted - 18) / 12) * 112
+    const y = 118 - ((hour.temperature - minimum) / (maximum - minimum)) * 104
     return `${x.toFixed(1)},${y.toFixed(1)}`
   })
   const path = `M${points.join(' L')}`
-  const lastPoint = points.at(-1).split(',')[0]
+  line.setAttribute('d', path)
+  fill.setAttribute('d', `${path} L520,132 L0,132 Z`)
+  document.querySelector('[data-chart-axis="max"]').textContent = formatTemperature(maximum)
+  document.querySelector('[data-chart-axis="middle"]').textContent = formatTemperature((maximum + minimum) / 2)
+  document.querySelector('[data-chart-axis="min"]').textContent = formatTemperature(minimum)
 
-  document.querySelector('#chart-line').setAttribute('d', path)
-  document.querySelector('#chart-fill').setAttribute('d', `${path} L${lastPoint},132 L0,132 Z`)
-  document.querySelector('#chart-times').innerHTML = selectedPeriod === 12
-    ? '<span>14h</span><span>15h</span><span>16h</span><span>17h</span><span>18h</span><span>19h</span>'
-    : '<span>08h</span><span>10h</span><span>12h</span><span>14h</span><span>16h</span><span>18h</span><span>20h</span>'
-  chartTitle.textContent = `Temperatura nas últimas ${selectedPeriod} horas`
+  const timeIndexes = [...new Set([0, Math.round((values.length - 1) / 3), Math.round(((values.length - 1) * 2) / 3), values.length - 1])]
+  times.replaceChildren(...timeIndexes.map((index) => (
+    Object.assign(document.createElement('span'), { textContent: formatHour(values[index].time) })
+  )))
+  chartTitle.textContent = `Previsão de temperatura para as próximas ${values.length} horas`
+}
+
+const renderWeatherReading = (neighborhood, reading) => {
+  weatherReadings.set(neighborhood, reading)
+  const temp = formatTemperature(reading.temperature)
+  const humidity = formatPercent(reading.humidity)
+  const air = reading.airQualityAvailable
+    ? `${Math.round(reading.airQualityIndex)} · ${reading.airQualityLabel}`
+    : 'Indisponível'
+  const temperatureText = document.querySelector(`[data-region-temp="${neighborhood}"]`)
+  const weatherText = document.querySelector(`[data-region-weather="${neighborhood}"]`)
+  if (temperatureText) temperatureText.textContent = temp
+  if (weatherText) weatherText.textContent = `Umidade ${humidity}`
+  if (selectedNeighborhood !== neighborhood) return
+
+  document.querySelector('#panel-neighborhood').textContent = `${neighborhood}, São Paulo`
+  document.querySelector('#hero-neighborhood').textContent = `${neighborhood}, São Paulo`
+  document.querySelector('#hero-temp').textContent = temp
+  document.querySelector('#metric-temp').textContent = temp
+  document.querySelector('#hero-apparent-temp').textContent = formatTemperature(reading.apparentTemperature)
+  document.querySelector('#metric-apparent-temp').textContent = formatTemperature(reading.apparentTemperature)
+  document.querySelector('#hero-condition').textContent = reading.condition
+  document.querySelector('#hero-weather-icon').textContent = reading.icon
+  document.querySelector('#metric-weather-icon').textContent = reading.icon
+  document.querySelector('#hero-rain').textContent = formatPercent(reading.precipitationProbability)
+  document.querySelector('#metric-rain').textContent = formatPercent(reading.precipitationProbability)
+  const rainLabel = reading.precipitationTime
+    ? `Chance de chuva às ${formatHour(reading.precipitationTime)}`
+    : 'Chance de chuva'
+  document.querySelector('#hero-rain-label').textContent = rainLabel
+  document.querySelector('#metric-rain-label').textContent = rainLabel
+  document.querySelector('#hero-humidity').textContent = humidity
+  document.querySelector('#metric-humidity').textContent = humidity
+  document.querySelector('#hero-air').textContent = air
+  document.querySelector('#metric-air').textContent = air
+  for (const element of [document.querySelector('#hero-air'), document.querySelector('#metric-air')]) {
+    element.classList.remove('air-good', 'air-moderate', 'air-attention', 'air-unhealthy')
+    if (reading.airQualityAvailable) {
+      if (reading.airQualityIndex <= 50) element.classList.add('air-good')
+      else if (reading.airQualityIndex <= 100) element.classList.add('air-moderate')
+      else if (reading.airQualityIndex <= 200) element.classList.add('air-attention')
+      else element.classList.add('air-unhealthy')
+    }
+  }
+  document.querySelector('#summary-neighborhood').textContent = neighborhood
+  document.querySelector('#summary-temp').textContent = temp
+  document.querySelector('#summary-humidity').textContent = humidity
+  const airQualityUpdated = reading.airQualityAvailable && reading.airQualityTime
+    ? ` · AQI ${formatHour(reading.airQualityTime)}`
+    : ' · AQI indisponível'
+  document.querySelector('#last-updated').textContent = `Open-Meteo · ${reading.currentTime.replace('T', ' ')} · grade ${reading.modelLatitude.toFixed(2)}, ${reading.modelLongitude.toFixed(2)}${airQualityUpdated}`
+  document.querySelector('#hero-data-note').textContent = `Modelo Open-Meteo · ${formatHour(reading.currentTime)} · não é sensor local`
+  document.querySelector('#panel-status-text').textContent = 'MODELO ATUALIZADO'
+  renderChart(reading)
+}
+
+const showWeatherLoading = (neighborhood) => {
+  if (selectedNeighborhood !== neighborhood) return
+  document.querySelector('#panel-status-text').textContent = 'CONSULTANDO'
+  document.querySelector('#hero-temp').textContent = '—'
+  document.querySelector('#metric-temp').textContent = '—'
+  document.querySelector('#hero-weather-icon').textContent = '☁'
+  document.querySelector('#metric-weather-icon').textContent = '☁'
+  document.querySelector('#hero-condition').textContent = 'Carregando…'
+  document.querySelector('#hero-apparent-temp').textContent = '—'
+  document.querySelector('#metric-apparent-temp').textContent = '—'
+  document.querySelector('#hero-rain').textContent = '—'
+  document.querySelector('#metric-rain').textContent = '—'
+  document.querySelector('#hero-rain-label').textContent = 'Chance de chuva'
+  document.querySelector('#metric-rain-label').textContent = 'Chance de chuva'
+  document.querySelector('#hero-humidity').textContent = '—'
+  document.querySelector('#metric-humidity').textContent = '—'
+  for (const element of [document.querySelector('#hero-air'), document.querySelector('#metric-air')]) {
+    element.textContent = '—'
+    element.classList.remove('air-good', 'air-moderate', 'air-attention', 'air-unhealthy')
+  }
+  document.querySelector('#summary-neighborhood').textContent = neighborhood
+  document.querySelector('#summary-temp').textContent = '—'
+  document.querySelector('#summary-humidity').textContent = '—'
+  document.querySelector('#hero-data-note').textContent = 'Consultando Open-Meteo…'
+  document.querySelector('#last-updated').textContent = 'Consultando Open-Meteo…'
+  renderChart(null)
+}
+
+const showWeatherUnavailable = (neighborhood, error) => {
+  if (selectedNeighborhood !== neighborhood) return
+  document.querySelector('#hero-temp').textContent = '—'
+  document.querySelector('#metric-temp').textContent = '—'
+  document.querySelector('#hero-weather-icon').textContent = '☁'
+  document.querySelector('#metric-weather-icon').textContent = '☁'
+  document.querySelector('#hero-apparent-temp').textContent = '—'
+  document.querySelector('#metric-apparent-temp').textContent = '—'
+  document.querySelector('#hero-condition').textContent = 'Dados indisponíveis'
+  document.querySelector('#hero-rain').textContent = '—'
+  document.querySelector('#metric-rain').textContent = '—'
+  document.querySelector('#hero-rain-label').textContent = 'Chance de chuva'
+  document.querySelector('#metric-rain-label').textContent = 'Chance de chuva'
+  document.querySelector('#hero-humidity').textContent = '—'
+  document.querySelector('#metric-humidity').textContent = '—'
+  for (const element of [document.querySelector('#hero-air'), document.querySelector('#metric-air')]) {
+    element.textContent = 'Indisponível'
+    element.classList.remove('air-good', 'air-moderate', 'air-attention', 'air-unhealthy')
+  }
+  document.querySelector('#summary-neighborhood').textContent = neighborhood
+  document.querySelector('#summary-temp').textContent = '—'
+  document.querySelector('#summary-humidity').textContent = '—'
+  document.querySelector('#hero-data-note').textContent = 'Não foi possível consultar a fonte meteorológica.'
+  document.querySelector('#last-updated').textContent = error.message
+  document.querySelector('#panel-status-text').textContent = 'INDISPONÍVEL'
+  renderChart(null)
+}
+
+const loadWeatherReading = async (neighborhood, { refresh = false } = {}) => {
+  if (selectedNeighborhood === neighborhood) {
+    showWeatherLoading(neighborhood)
+    document.querySelector('#refresh-weather').disabled = true
+  }
+  if (weatherRequests.has(neighborhood)) return weatherRequests.get(neighborhood)
+  const request = getWeatherReading(neighborhood, { refresh })
+    .then((reading) => {
+      renderWeatherReading(neighborhood, reading)
+      return reading
+    })
+    .catch((error) => {
+      if (error.name !== 'AbortError') {
+        console.error(`Não foi possível carregar o clima de ${neighborhood}.`, error)
+        const temperatureText = document.querySelector(`[data-region-temp="${neighborhood}"]`)
+        const weatherText = document.querySelector(`[data-region-weather="${neighborhood}"]`)
+        if (temperatureText) temperatureText.textContent = 'Indisponível'
+        if (weatherText) weatherText.textContent = 'Fonte indisponível'
+        showWeatherUnavailable(neighborhood, error)
+      }
+      return null
+    })
+    .finally(() => {
+      weatherRequests.delete(neighborhood)
+      if (selectedNeighborhood === neighborhood) document.querySelector('#refresh-weather').disabled = false
+    })
+  weatherRequests.set(neighborhood, request)
+  return request
 }
 
 const selectNeighborhood = (neighborhood) => {
   selectedNeighborhood = neighborhood
-  const data = getReading(neighborhood)
-  const air = document.querySelector('#metric-air')
-
   neighborhoodSelect.value = neighborhood
-  document.querySelector('#panel-neighborhood').textContent = `${neighborhood}, SP`
-  document.querySelector('#metric-temp').textContent = `${data.currentTemp}°`
-  document.querySelector('#metric-rain').textContent = data.rain
-  document.querySelector('#metric-humidity').textContent = data.humidity
-  air.textContent = data.air
-  air.classList.toggle('air-attention', data.air === 'Atenção')
+  document.querySelector('#panel-neighborhood').textContent = `${neighborhood}, São Paulo`
   document.querySelector('#hero-neighborhood').textContent = `${neighborhood}, São Paulo`
-  document.querySelector('#hero-temp').textContent = `${data.currentTemp}°`
-  document.querySelector('#hero-rain').textContent = data.rain
-  document.querySelector('#hero-humidity').textContent = data.humidity
-  const heroAir = document.querySelector('#hero-air')
-  heroAir.textContent = data.air
-  heroAir.classList.toggle('air-attention', data.air === 'Atenção')
   document.querySelector('#summary-neighborhood').textContent = neighborhood
-  document.querySelector('#summary-priority').textContent = `Prioridade ${data.priority.toLowerCase()}`
-  document.querySelector('#summary-priority').className = `priority-badge priority-${data.priority.toLowerCase()}`
-  document.querySelector('#summary-trees').textContent = data.trees
-  document.querySelector('#summary-emissions').textContent = `${data.emissions}*`
-
   regionButtons.forEach((button) => {
-    button.classList.toggle('is-selected', button.dataset.mapRegion === neighborhood)
-    if (button.classList.contains('region-card')) {
-      button.setAttribute('aria-pressed', String(button.dataset.mapRegion === neighborhood))
-    }
+    const isSelected = button.dataset.mapRegion === neighborhood
+    button.classList.toggle('is-selected', isSelected)
+    if (button.classList.contains('region-card')) button.setAttribute('aria-pressed', String(isSelected))
   })
-  updateChart()
+  const reading = weatherReadings.get(neighborhood)
+  if (reading) renderWeatherReading(neighborhood, reading)
+  else loadWeatherReading(neighborhood)
 }
 
 neighborhoodSelect.addEventListener('change', (event) => selectNeighborhood(event.target.value))
 regionButtons.forEach((button) => {
   button.addEventListener('click', () => selectNeighborhood(button.dataset.mapRegion))
-})
-
-document.querySelectorAll('[data-priority-filter]').forEach((button) => {
-  button.addEventListener('click', () => {
-    const showHighPriorityOnly = button.dataset.priorityFilter === 'high'
-    document.querySelectorAll('[data-priority-filter]').forEach((filter) => {
-      const isActive = filter === button
-      filter.classList.toggle('is-active', isActive)
-      filter.setAttribute('aria-pressed', String(isActive))
-    })
-    document.querySelectorAll('[data-priority]').forEach((region) => {
-      region.hidden = showHighPriorityOnly && region.dataset.priority !== 'high'
-    })
-    document.querySelector('#region-count').textContent = showHighPriorityOnly ? '1 área' : '3 áreas'
-  })
 })
 
 document.querySelectorAll('[data-period]').forEach((button) => {
@@ -833,14 +946,13 @@ document.querySelectorAll('[data-period]').forEach((button) => {
   })
 })
 
-document.querySelector('#refresh-demo').addEventListener('click', (event) => {
+document.querySelector('#refresh-weather').addEventListener('click', (event) => {
   const refreshButton = event.currentTarget
-  refreshCount += 1
-  selectNeighborhood(selectedNeighborhood)
-  const updatedAt = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(new Date())
-  document.querySelector('#last-updated').textContent = `Demonstração atualizada às ${updatedAt} · sem conexão a sensores`
+  clearWeatherCache(selectedNeighborhood)
   refreshButton.classList.add('is-refreshing')
-  window.setTimeout(() => refreshButton.classList.remove('is-refreshing'), 450)
+  loadWeatherReading(selectedNeighborhood, { refresh: true }).finally(() => {
+    refreshButton.classList.remove('is-refreshing')
+  })
 })
 
 const updateChallengeProgress = () => {
@@ -880,3 +992,6 @@ document.querySelector('#event-interest').addEventListener('click', (event) => {
 initInterestForm()
 
 selectNeighborhood(selectedNeighborhood)
+for (const neighborhood of ['Vila Madalena', 'Centro Histórico']) {
+  loadWeatherReading(neighborhood)
+}
