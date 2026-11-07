@@ -44,3 +44,38 @@
 @media (max-width: 800px) { .tree-growth-panel { grid-template-columns: 170px minmax(0, 1fr); gap: 16px; padding-inline: 18px; }.tree-illustration-wrap { min-height: 190px; } }
 @media (max-width: 520px) { .tree-growth-panel { grid-template-columns: 1fr; gap: 10px; padding: 15px; }.tree-illustration-wrap { min-height: 165px; }.growth-tree { width: 170px; }.tree-growth-copy h2 { font-size: 18px; }.tree-visit-controls { flex-direction: column; }.tree-visit-controls button { min-height: 38px; } }
 .profile-week-picker[hidden] { display: none; }
+
+@media (max-width: 520px) {
+  .profile-header, .profile-main, .profile-footer { width: calc(100% - 32px); }
+  .profile-main { padding-top: 14px; }
+  .demo-banner { padding: 12px; border-radius: 10px; font-size: 13px; line-height: 1.55; }
+  .profile-welcome { gap: 17px; margin: 22px 0 20px; }
+  .profile-eyebrow { font-size: 10px; }
+  .profile-welcome h1 { margin-top: 7px; font-size: 34px; }
+  .profile-welcome p { font-size: 14px; line-height: 1.55; }
+  .profile-pickers { gap: 9px; }
+  .profile-week-picker { min-height: 48px; padding: 7px 12px; border-radius: 10px; }
+  .profile-week-picker select, .profile-picker-trigger { min-height: 42px; font-size: 14px; }
+  .personal-stats { gap: 9px; }
+  .personal-stat { min-height: 132px; padding: 14px; border-radius: 10px; }
+  .personal-stat-label { font-size: 9px; letter-spacing: .5px; }
+  .personal-stat > strong { font-size: 23px; }
+  .personal-stat > strong small { font-size: 12px; }
+  .personal-stat > p { font-size: 12px; line-height: 1.45; }
+  .activity-panel, .community-panel, .places-panel { border-radius: 12px; }
+  .profile-section-heading h2, .places-heading h2 { font-size: 18px; line-height: 1.35; }
+  .activity-total, .day-detail { font-size: 12px; line-height: 1.5; }
+  .activity-total strong, .day-detail strong { font-size: 13px; }
+  .bar-value, .day-name { font-size: 10px; }
+  .activity-day { min-height: 44px; }
+  .tree-growth-panel { border-radius: 12px; }
+  .tree-growth-copy h2 { font-size: 20px; }
+  .tree-growth-copy > p:not(.tree-next-step):not(.tree-visit-status) { font-size: 14px; line-height: 1.6; }
+  .tree-stage-row strong { font-size: 14px; }
+  .tree-stage-row span, .tree-next-step, .tree-visit-status { font-size: 12px; line-height: 1.5; }
+  .tree-visit-controls select, .tree-visit-controls button { min-height: 46px; font-size: 14px; }
+  .place-item { min-height: 64px; padding: 11px; border-radius: 9px; }
+  .totem-note { border-radius: 12px; }
+  .profile-footer { gap: 12px; font-size: 12px; line-height: 1.5; }
+  .profile-footer small { font-size: 11px; }
+}

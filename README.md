@@ -1,103 +1,136 @@
 # Raiz Urbana
 
-Aplicação demonstrativa para aproximar comunidades de áreas verdes, monitoramento climático local e hábitos sustentáveis. O projeto contém uma página de apresentação e um perfil comunitário com iniciativas que podem ser consultadas e gerenciadas.
+Aplicação demonstrativa sobre áreas verdes, clima urbano e participação comunitária. O projeto reúne uma página de apresentação e um perfil com conta, hábitos, árvore digital e planos comunitários.
 
 ## Requisitos
 
 - Node.js 20.19 ou superior
 - npm
 
-## Executar e testar
+## Instalação rápida
+
+No terminal, entre na pasta do projeto e instale as dependências:
 
 ```bash
 npm ci
+```
+
+Inicie o site:
+
+```bash
 npm run dev
 ```
 
-O Vite informa no terminal o endereço local. Para executar os testes dos fluxos da interface e da API:
+Abra o endereço informado pelo Vite (normalmente `http://localhost:5173`). A página inicial fica em `/` e o perfil em `/perfil.html`.
+
+Para executar os testes automatizados e gerar a versão de produção:
 
 ```bash
 npm test
-```
-
-## API local e dados
-
-O servidor Express em `server/` oferece cadastro/login, perfil, árvore e planos. Por padrão, os dados são gravados localmente em `server/data/raiz-urbana.json`:
-
-- `POST /api/auth/register` — recebe `{ "name": "...", "email": "...", "password": "..." }`.
-- `POST /api/auth/login` — recebe `{ "email": "...", "password": "..." }` e devolve um token Bearer de acesso válido por 15 minutos.
-- `GET /api/auth/me` — retorna o perfil com `Authorization: Bearer <accessToken>`.
-- `GET /api/health` — verificação básica do servidor.
-- `/api/profile` — consulta e atualiza o perfil autenticado.
-- `/api/profile/tree-visits` — registra visitas e permite reiniciar a árvore.
-- `/api/profile/habit-entries` — cria, atualiza e exclui registros pessoais diários de atividade, água e passos.
-- `/api/plans` — CRUD de planos pessoais persistidos por usuário.
-
-O arquivo guarda nome, e-mail normalizado, **hash bcrypt da senha**, visitas, registros de hábitos e planos associados ao dono da conta. Novas contas começam sem registros; nada é preenchido automaticamente nem medido em segundo plano. A senha original nunca é salva. A API fica vinculada a `127.0.0.1`, ou seja, acessível somente neste computador; não configure redirecionamento de portas do roteador. Sessões usam cookie HttpOnly com proteção CSRF.
-
-### Configuração local
-
-1. Copie `.env.example` para `.env` e gere um segredo JWT:
-
-   ```bash
-   node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"
-   ```
-
-2. Em um terminal, execute `npm run api:dev`; em outro, `npm run dev`. O proxy do Vite encaminha `/api` para `http://localhost:4000`.
-3. Crie uma conta no perfil. A API cria automaticamente `server/data/raiz-urbana.json`; mantenha esse arquivo privado e faça cópias de segurança protegidas.
-
-`DATA_FILE` permite escolher outro caminho para o arquivo JSON. `.env`, o arquivo de dados e cópias de segurança não devem ser enviados ao Git nem compartilhados.
-
-Esta configuração é para demonstração e uso local, não para receber contas de usuários pela internet: o computador precisa ficar ligado e conectado, e o armazenamento JSON não tem as garantias de disponibilidade, backup e concorrência de um serviço de produção. Para usuários remotos, hospede a API em um serviço seguro e use um banco apropriado.
-
-Sem login, a página mostra perfis e iniciativas demonstrativos; alterações nessa demonstração não são persistidas. Com login, o perfil pode ser renomeado, as visitas à árvore e os registros diários de hábitos podem ser adicionados, editados e excluídos, e os planos privados podem ser criados, editados e removidos. Esses dados ficam no arquivo JSON local e começam vazios para cada conta. Um convite no canto inicia um tour guiado pelas áreas do perfil; o painel de hábitos também oferece um gráfico semanal e exportação dos registros em CSV.
-
-Antes de aceitar usuários reais, publique uma política de privacidade adequada à LGPD, defina retenção e exclusão de contas, configure backups e recuperação, e faça uma revisão de segurança e operação do ambiente hospedado.
-
-### Cadastro para receber atualizações
-
-O formulário no final da página inicial envia o e-mail ao Formspree (`https://formspree.io/f/xeaawgoz`) para registrar interesse em receber atualizações. Os envios podem ser consultados na caixa de entrada do formulário na conta Formspree que administra esse endpoint. A aplicação não mantém uma cópia local desses cadastros. Para usar o formulário, confirme o endpoint e conclua a ativação/confirmação solicitada pelo Formspree na conta responsável.
-
-## Páginas
-
-- `/` — apresentação do projeto, áreas prioritárias, monitoramento e participação.
-- `/perfil.html` — acesso à conta, tutorial, árvore digital, registros pessoais de hábitos e painel de planos comunitários.
-
-## Funcionalidades e arquitetura
-
-- Vite com duas entradas HTML, React e Tailwind CSS.
-- Painel de iniciativas com oito componentes, filtros por texto/região, formulários validados e operações de criar, consultar, atualizar e excluir.
-- Hooks personalizados para carregar e gerenciar registros, estado/validação de formulário e fechamento de diálogos.
-- Acesso à API isolado em `src/services/recordsApi.js`.
-- Testes automatizados dos principais fluxos do painel em `src/components/CommunityRecordsApp.test.jsx`.
-
-O restante das páginas originais é mantido em JavaScript para preservar as interações existentes; o painel de iniciativas é uma ilha React integrada ao perfil.
-
-## API e dados demonstrativos
-
-Sem login, o painel apresenta oito iniciativas demonstrativas em português do Brasil e permite testar criação, edição e exclusão temporárias; essas alterações desaparecem ao recarregar a página e não dependem de API externa. Com uma conta autenticada, o painel alterna para a API própria e salva os planos por usuário no arquivo JSON local.
-
-As leituras climáticas e estatísticas de hábitos continuam fictícias. Ainda não há integração real com totens nem monitoramento de localização. O formulário de conta permite cadastro/login; visitas da árvore e planos são registrados apenas quando a pessoa os informa, associados à sua conta e salvos no arquivo JSON local. Sem login, o progresso da árvore fica somente no armazenamento local do navegador.
-
-## Build
-
-```bash
 npm run build
 npm run preview
 ```
 
-Os arquivos prontos para publicação são gerados em `dist/`. `node_modules/` e `dist/` não são necessários no Git; podem ser recriados com os comandos acima.
+O build gera os arquivos estáticos em `dist/`.
 
-O site carrega imagens do Unsplash e fontes do Google Fonts, portanto esses recursos externos dependem de conexão com a internet.
+## O que há no projeto
+
+### Página inicial — `/`
+
+- Apresentação da proposta e das ações da Raiz Urbana.
+- Mapa esquemático de regiões e indicadores climáticos demonstrativos.
+- Leitura guiada por capítulos e apresentação em slides.
+- Formulário de interesse para receber novidades.
+
+### Perfil — `/perfil.html`
+
+- Cadastro, login e edição de nome de perfil.
+- Registros pessoais de atividade, água, passos e visitas a áreas verdes.
+- Árvore digital, resumo de hábitos, gráfico semanal e exportação CSV.
+- Painel de planos comunitários, com busca e filtro por região.
+- Tour para conhecer as áreas do perfil e controles de acessibilidade para ampliar o conteúdo.
+
+### Tecnologias e estrutura
+
+- Vite e JavaScript para as páginas; React para o painel de conta, hábitos e planos.
+- Express para a API local; Vitest e Testing Library para testes.
+- `src/main.js` e `src/perfil.js`: entradas das duas páginas.
+- `src/services/`: integração com API, contas locais e formulário de interesse.
+- `src/components/`: painéis React.
+- `server/`: API, rotas, modelos e armazenamento JSON local.
+
+As leituras de clima, estatísticas e iniciativas sem login são demonstrativas. Não há integração real com sensores ou localização.
+
+## Modos de conta
+
+### API local (dados no computador)
+
+Use este modo para persistir contas e dados no arquivo JSON local do projeto.
+
+1. No primeiro terminal, crie um segredo JWT e inicie a API:
+
+   **PowerShell**
+
+   ```powershell
+   $env:JWT_SECRET = (node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))")
+   npm run api:dev
+   ```
+
+   **macOS/Linux**
+
+   ```bash
+   export JWT_SECRET="$(node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))")"
+   npm run api:dev
+   ```
+
+2. Em um segundo terminal, execute `npm run dev`.
+3. Abra `/perfil.html` e crie uma conta.
+
+A API fica vinculada a `127.0.0.1:4000`. Os dados são gravados em `server/data/raiz-urbana.json` por padrão. O caminho pode ser alterado com `DATA_FILE`. O arquivo inclui hashes de senha e dados pessoais; mantenha-o privado e não o envie ao Git.
+
+`CLIENT_ORIGINS` configura as origens permitidas para a API e `TRUST_PROXY_HOPS` configura proxies confiáveis. Consulte `.env.example` para os valores locais padrão. Nunca publique um segredo JWT real.
+
+Esse armazenamento em arquivo é para desenvolvimento local, não para produção. A Vercel não mantém os arquivos locais da API entre execuções serverless.
+
+### Conta local no navegador
+
+Para testar sem iniciar a API, defina `VITE_BROWSER_ACCOUNTS=true` antes de iniciar o Vite:
+
+**PowerShell**
+
+```powershell
+$env:VITE_BROWSER_ACCOUNTS = 'true'
+npm run dev
+```
+
+**macOS/Linux**
+
+```bash
+VITE_BROWSER_ACCOUNTS=true npm run dev
+```
+
+Esse modo também é ativado automaticamente nos builds da Vercel. Perfil e dados de conta são criptografados e ficam no armazenamento local do navegador; a senha original não é salva. A conta existe apenas naquele navegador e endereço do site. Não há sincronização entre dispositivos, e apagar os dados do navegador apaga a conta.
+
+## Formulário de interesse
+
+O formulário no fim da página inicial envia e-mails ao [Formspree](https://formspree.io/f/xeaawgoz). Quem administra esse formulário pode consultar os cadastros na conta Formspree associada. A aplicação não guarda uma cópia desses e-mails. O endpoint deve estar ativo e confirmado na conta Formspree para receber envios.
 
 ## Publicação na Vercel
 
-Depois de autenticar a Vercel CLI (`npx vercel login`), execute `npx vercel` para criar uma prévia e `npx vercel --prod` para publicar em produção. A configuração de build usa `npm run build` e a pasta `dist/`.
+O projeto usa Vite; a configuração de publicação está em `vercel.json`. A Vercel executa `npm run build` e publica `dist/`. Para publicar pela CLI:
 
-A configuração atual da Vercel publica apenas o site estático; ela não acessa o arquivo no seu computador. O armazenamento JSON local não deve ser usado como banco de produção em uma hospedagem serverless.
+```bash
+npx vercel
+npx vercel --prod
+```
 
-### Contas na versão publicada
+Na Vercel, as contas usam o modo local do navegador descrito acima. Isso é adequado para demonstração, não para oferecer contas sincronizadas ou armazenamento centralizado a usuários reais. Para produção, seria necessário conectar a aplicação a uma API e banco persistentes.
 
-Na Vercel, o build detecta a variável de ambiente `VERCEL=1` e ativa contas locais no navegador, sem enviar login, senha ou dados pessoais à API. A senha deriva uma chave criptográfica; perfil, visitas, hábitos e planos são cifrados no `localStorage` antes de serem salvos. A senha original não é armazenada.
+## Privacidade e demonstração
 
-Esse modo é apenas para demonstração: cada navegador tem suas próprias contas e dados, não há sincronização entre aparelhos ou entre o site publicado e o JSON do computador, e limpar os dados do navegador apaga as contas. Não é uma autenticação centralizada nem substitui um servidor para uso real. Para testar esse modo em outro ambiente, defina `VITE_BROWSER_ACCOUNTS=true` durante o build.
+- O login pela API local usa senha com hash bcrypt e sessão protegida por cookie.
+- No modo de conta do navegador, os dados são criptografados antes de serem salvos localmente.
+- O formulário de interesse envia o e-mail ao Formspree.
+- Estatísticas climáticas, mapas e perfis apresentados sem login são fictícios; não há monitoramento automático de atividade ou localização.
+
+Antes de coletar dados de usuários reais, publique uma política de privacidade adequada à LGPD e defina procedimentos de retenção, exclusão, segurança e atendimento aos titulares.
