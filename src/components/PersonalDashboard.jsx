@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { deleteHabitEntry, getCurrentSession, saveHabitEntry } from '../services/authApi.js'
 import '../react.css'
 
@@ -351,10 +352,10 @@ export function PersonalDashboard() {
           <button type="button" className="tour-invitation-close" aria-label="Dispensar convite do tour" onClick={() => closeTour(false)}>×</button>
         </aside>
       )}
-      {tourStep >= 0 && (
-        <div className="profile-tour" role="dialog" aria-modal="true" aria-labelledby="profile-tour-title">
+      {tourStep >= 0 && createPortal(
+        <>
           <div className="profile-tour-backdrop" />
-          <section className="profile-tour-card">
+          <section className="profile-tour-card" role="dialog" aria-modal="true" aria-labelledby="profile-tour-title">
             <div className="profile-tour-progress">
               <span>SEU TOUR</span>
               <span>{tourStep + 1} de {TOUR_STEPS.length}</span>
@@ -376,7 +377,8 @@ export function PersonalDashboard() {
               </div>
             </div>
           </section>
-        </div>
+        </>,
+        document.body,
       )}
     </div>
   )

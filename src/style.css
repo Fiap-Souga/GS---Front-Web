@@ -40,6 +40,22 @@ svg { width: 20px; height: 20px; }
 .nav-cta { min-height: 42px; padding: 0 17px; display: inline-flex; align-items: center; gap: 10px; border-radius: 5px; background: var(--forest); color: white; }
 .nav-cta svg, .button svg, .join-form button svg { width: 16px; height: 16px; }
 .menu-toggle { display: none; }
+.accessibility-controls { position: relative; flex: 0 0 auto; }
+.accessibility-trigger { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 13px; border: 1px solid #cbd8c3; border-radius: 7px; background: #fff; color: #2e5034; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 12px #20332212; }
+.accessibility-trigger:hover, .accessibility-trigger[aria-expanded="true"] { border-color: #78976b; background: #f0f5eb; }
+.accessibility-trigger:focus-visible, .accessibility-panel button:focus-visible { outline: 3px solid #6f935c; outline-offset: 3px; }
+.accessibility-trigger-icon { min-width: 25px; height: 25px; display: grid; place-items: center; border-radius: 5px; background: #e8f0e2; color: #36583a; font-size: 15px; }
+.accessibility-panel { position: absolute; top: calc(100% + 10px); right: 0; z-index: 80; width: min(300px, calc(100vw - 32px)); padding: 18px; border: 1px solid #dce5d6; border-radius: 12px; background: #fff; color: #2d4332; box-shadow: 0 16px 42px #20332230; }
+.accessibility-panel[hidden] { display: none; }
+.accessibility-panel > strong { display: block; font-size: 16px; }
+.accessibility-panel > p { margin: 5px 0 14px; color: #596657; font-size: 13px; line-height: 1.5; }
+.accessibility-zoom-controls { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 10px; }
+.accessibility-zoom-controls button { min-height: 42px; border: 1px solid #cbd8c3; border-radius: 7px; background: #f6f8f3; color: #2e5034; font-size: 17px; font-weight: 700; cursor: pointer; }
+.accessibility-zoom-controls button:hover:not(:disabled) { background: #e8f0e2; }
+.accessibility-zoom-controls button:disabled, .accessibility-reset:disabled { opacity: .48; cursor: not-allowed; }
+.accessibility-zoom-value { color: #344b36; text-align: center; font-size: 14px; font-weight: 700; }
+.accessibility-reset { width: 100%; min-height: 38px; margin-top: 12px; border: 0; border-radius: 6px; background: transparent; color: #426743; font-size: 13px; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.accessibility-reset:hover:not(:disabled) { background: #f1f5ed; }
 
 .hero { position: relative; min-height: 550px; padding: 43px 0 64px; display: grid; grid-template-columns: .93fr 1.07fr; align-items: center; gap: 32px; }
 .hero-copy { z-index: 1; padding-bottom: 4px; }
@@ -212,6 +228,9 @@ h1, h2, h3, p { margin-top: 0; }
 @media (max-width: 700px) {
   .page-wrap, .section-wrap { width: calc(100% - 40px); }
   .site-header { width: calc(100% - 40px); height: 70px; }
+  .accessibility-label { display: none; }
+  .accessibility-trigger { min-height: 40px; padding-inline: 8px; }
+  .accessibility-trigger-icon { min-width: 26px; height: 26px; }
   .menu-toggle { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid #e2e7dc; border-radius: 4px; background: transparent; color: var(--forest); }.menu-toggle svg { width: 19px; height: 19px; }
   .main-nav { position: absolute; top: 61px; left: 20px; right: 20px; z-index: 5; display: none; flex-direction: column; align-items: stretch; gap: 0; padding: 8px 16px; border: 1px solid #e5e9df; border-radius: 5px; background: #fbfcf8; box-shadow: 0 12px 30px #2139221c; }.main-nav.is-open { display: flex; }.main-nav > a:not(.nav-cta) { padding: 13px 0; border-bottom: 1px solid #edf0e9; }.nav-cta { justify-content: center; margin: 10px 0 5px; }
   .hero { min-height: initial; padding: 40px 0 48px; display: flex; flex-direction: column; align-items: stretch; gap: 30px; }.hero h1 { margin-top: 20px; font-size: clamp(43px, 11vw, 58px); letter-spacing: -2px; }.hero-description { max-width: 470px; font-size: 13px; }.hero-proof { margin-top: 25px; }.hero-visual { height: 390px; }.weather-card { top: 16px; right: 13px; width: min(238px, calc(100% - 26px)); }.green-tag { left: -7px; bottom: 55px; }.hero-caption { right: 12px; bottom: 14px; }

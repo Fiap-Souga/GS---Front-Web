@@ -1,4 +1,5 @@
 import './style.css'
+import { initAccessibilityControls } from './accessibility.js'
 
 const icon = (name, className = '') => {
   const paths = {
@@ -303,6 +304,8 @@ document.querySelector('#app').innerHTML = `
     <small>© 2026 Raiz Urbana · Projeto conceitual</small>
   </footer>
 `
+
+initAccessibilityControls()
 
 if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   const leafIntro = document.createElement('div')

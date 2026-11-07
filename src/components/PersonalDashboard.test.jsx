@@ -130,6 +130,7 @@ describe('PersonalDashboard', () => {
 
     await user.click(screen.getByRole('button', { name: /Começar tour/ }))
     expect(screen.getByRole('dialog')).toBeTruthy()
+    expect(screen.getByRole('dialog').parentElement).toBe(document.body)
     expect(screen.getByRole('heading', { name: 'Seu perfil, do seu jeito' })).toBeTruthy()
 
     await user.click(screen.getByRole('button', { name: 'Próximo' }))

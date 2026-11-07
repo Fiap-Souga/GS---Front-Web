@@ -1,5 +1,6 @@
 import './style.css'
 import './perfil.css'
+import { initAccessibilityControls } from './accessibility.js'
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { AccountPanel } from './components/AccountPanel.jsx'
@@ -238,6 +239,8 @@ document.querySelector('#app').innerHTML = `
   </main>
   <footer class="profile-footer"><a class="brand footer-brand" href="/"><span class="brand-mark">${icon('leaf')}</span><span>raiz<span class="brand-light">urbana</span></span></a><span>Uma cidade melhor cresce com todo mundo.</span><small>Registros pessoais são salvos localmente na sua conta.</small></footer>
 `
+
+initAccessibilityControls()
 
 createRoot(document.querySelector('#community-records-root')).render(createElement(CommunityRecordsApp))
 createRoot(document.querySelector('#account-root')).render(createElement(AccountPanel))
