@@ -44,6 +44,14 @@ export function initAccessibilityControls() {
   const decreaseButton = controls.querySelector('[data-zoom-action="decrease"]')
   const increaseButton = controls.querySelector('[data-zoom-action="increase"]')
   const resetButton = controls.querySelector('.accessibility-reset')
+  let pinned = null
+  let isHovering = false
+  let hasFocus = false
+
+  const setPanelOpen = (isOpen) => {
+    trigger.setAttribute('aria-expanded', String(isOpen))
+    panel.hidden = !isOpen
+  }
 
   const renderZoom = () => {
     document.documentElement.style.zoom = `${zoom}%`
@@ -63,11 +71,39 @@ export function initAccessibilityControls() {
     }
   }
 
-  trigger.addEventListener('click', () => {
-    const isExpanded = trigger.getAttribute('aria-expanded') === 'true'
-    trigger.setAttribute('aria-expanded', String(!isExpanded))
-    panel.hidden = isExpanded
-    if (!isExpanded) increaseButton.focus()
+  controls.addEventListener('mouseenter', () => {
+    isHovering = true
+    if (pinned === null) setPanelOpen(true)
+  })
+
+  controls.addEventListener('mouseleave', () => {
+    isHovering = false
+    if (pinned !== true) {
+      const wasExplicitlyClosed = pinned === false
+      pinned = null
+      setPanelOpen(!wasExplicitlyClosed && hasFocus)
+    }
+  })
+
+  controls.addEventListener('focusin', () => {
+    hasFocus = true
+    if (pinned === null) setPanelOpen(true)
+  })
+
+  controls.addEventListener('focusout', (event) => {
+    if (controls.contains(event.relatedTarget)) return
+    hasFocus = false
+    if (pinned !== true) {
+      const wasExplicitlyClosed = pinned === false
+      pinned = null
+      setPanelOpen(!wasExplicitlyClosed && isHovering)
+    }
+  })
+
+  trigger.addEventListener('click', (event) => {
+    pinned = pinned !== true
+    setPanelOpen(pinned)
+    if (pinned && event.detail === 0) increaseButton.focus()
   })
 
   controls.addEventListener('click', (event) => {
@@ -85,8 +121,8 @@ export function initAccessibilityControls() {
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && !panel.hidden) {
-      panel.hidden = true
-      trigger.setAttribute('aria-expanded', 'false')
+      pinned = false
+      setPanelOpen(false)
       trigger.focus()
     }
   })
