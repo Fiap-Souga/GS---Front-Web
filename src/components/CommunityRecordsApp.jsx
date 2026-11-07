@@ -23,8 +23,8 @@ function ApiNotice({ isSignedIn }) {
     <aside className="api-demo-notice" role="note">
       <span aria-hidden="true">ⓘ</span>
       <span>{isSignedIn
-        ? 'Seus planos são privados e ficam salvos no arquivo local da sua conta.'
-        : 'Modo demonstração: atividades em português com alterações temporárias neste navegador. Entre ou crie uma conta para salvar seus próprios planos.'}</span>
+        ? 'Seus planos são privados e ficam salvos na sua conta neste navegador ou na API local.'
+        : 'Modo público: ações ficam na API externa; a lista de identificadores é guardada neste navegador e não sincroniza com outros dispositivos. Limpar os dados do navegador apaga a lista, não os registros externos. Os registros são públicos para quem conhece o identificador. Não inclua dados pessoais.'}</span>
     </aside>
   )
 }

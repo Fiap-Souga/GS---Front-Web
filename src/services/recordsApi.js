@@ -1,65 +1,120 @@
 import { authenticatedRequest, getCurrentSession } from './authApi.js'
 
-const DEMO_RECORDS = [
-  {
-    id: 1,
-    title: 'Mutirão de plantio na praça',
-    body: 'Vamos plantar mudas de espécies nativas e deixar a praça mais verde. Traga luvas, uma garrafa de água e disposição para colaborar!',
-    place: 'Praça Benedito Calixto',
-    userId: 1,
-  },
-  {
-    id: 2,
-    title: 'Cuidado coletivo com o parque',
-    body: 'Encontro para recolher resíduos, cuidar dos canteiros e conversar sobre como manter o parque agradável para toda a vizinhança.',
-    place: 'Parque Ibirapuera',
-    userId: 2,
-  },
-  {
-    id: 3,
-    title: 'Horta comunitária para todos',
-    body: 'Participe do preparo dos canteiros, do plantio de temperos e da troca de dicas para cuidar da horta comunitária.',
-    place: 'Horta da Vila Madalena',
-    userId: 3,
-  },
-  {
-    id: 4,
-    title: 'Compostagem no bairro',
-    body: 'Aprenda a separar resíduos orgânicos e a transformá-los em adubo para as plantas da praça. Atividade aberta para iniciantes.',
-    place: 'Praça das Corujas',
-    userId: 1,
-  },
-  {
-    id: 5,
-    title: 'Caminhada de observação da natureza',
-    body: 'Um passeio tranquilo para observar as árvores, conhecer as áreas verdes do bairro e compartilhar ideias para preservá-las.',
-    place: 'Parque Villa-Lobos',
-    userId: 2,
-  },
-  {
-    id: 6,
-    title: 'Oficina de jardins para polinizadores',
-    body: 'Vamos montar um pequeno jardim com plantas que ajudam abelhas e borboletas. Cada pessoa pode trazer uma muda ou semente.',
-    place: 'Praça do Pôr do Sol',
-    userId: 3,
-  },
-  {
-    id: 7,
-    title: 'Roda de conversa sobre água',
-    body: 'Encontro para trocar soluções simples de economia de água e conversar sobre a importância dos rios e nascentes da região.',
-    place: 'Centro Cultural de Pinheiros',
-    userId: 1,
-  },
-  {
-    id: 8,
-    title: 'Sábado de brincadeiras ao ar livre',
-    body: 'Uma manhã de jogos, leitura e convivência na praça. Traga uma canga, um livro ou uma brincadeira para compartilhar.',
-    place: 'Praça Horácio Sabino',
-    userId: 2,
-  },
-]
+const DEMO_API_URL = 'https://api.restful-api.dev/objects'
+const DEMO_APP_MARKER = 'raiz-urbana'
+const DEMO_RECORD_IDS_KEY = 'raiz-urbana-public-action-ids:v1'
+const PLACE_SEPARATOR = '\n[ru-place]:'
 
-let nextDemoId = DEMO_RECORDS.length + 1
+const isValidDate = (value) => {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const parsed = new Date(`${value}T00:00:00.000Z`)
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
+}
+
+const encodeDemoRecord = (record) => ({
+  name: record.title,
+  data: {
+    app: DEMO_APP_MARKER,
+    body: `${record.body}${PLACE_SEPARATOR}${encodeURIComponent(record.place)}`,
+    date: record.date,
+    userId: record.userId,
+  },
+})
+
+const readDemoRecordIds = () => {
+  let serialized
+  try {
+    serialized = globalThis.localStorage.getItem(DEMO_RECORD_IDS_KEY)
+  } catch (error) {
+    throw new Error(`Não foi possível acessar a lista de ações deste navegador: ${error.message}`)
+  }
+  if (serialized === null) return []
+
+  let ids
+  try {
+    ids = JSON.parse(serialized)
+  } catch {
+    throw new Error('A lista de ações deste navegador está corrompida.')
+  }
+  if (!Array.isArray(ids) || ids.some((id) => typeof id !== 'string' || !/^[\w-]+$/.test(id))) {
+    throw new Error('A lista de ações deste navegador tem um formato inválido.')
+  }
+  return [...new Set(ids)]
+}
+
+const writeDemoRecordIds = (ids) => {
+  try {
+    globalThis.localStorage.setItem(DEMO_RECORD_IDS_KEY, JSON.stringify(ids))
+  } catch (error) {
+    throw new Error(`Não foi possível salvar a lista de ações neste navegador: ${error.message}`)
+  }
+}
+
+const requestDemoApi = async (path = '', options = {}) => {
+  let response
+  try {
+    response = await fetch(`${DEMO_API_URL}${path}`, options)
+  } catch (error) {
+    if (error.name === 'AbortError') throw error
+    throw new Error(`Não foi possível conectar à API pública de demonstração. ${error.message}`)
+  }
+
+  if (!response.ok) {
+    throw new Error(`A API pública de demonstração respondeu com HTTP ${response.status}.`)
+  }
+  if (response.status === 204 || options.method === 'DELETE') return null
+
+  try {
+    return await response.json()
+  } catch (error) {
+    throw new Error(`A API pública de demonstração retornou uma resposta inválida. ${error.message}`)
+  }
+}
+
+const validateDemoRecord = (record) => {
+  const encodedBody = record?.data?.body
+  const separatorIndex = typeof encodedBody === 'string'
+    ? encodedBody.lastIndexOf(PLACE_SEPARATOR)
+    : -1
+  const body = separatorIndex >= 0 ? encodedBody.slice(0, separatorIndex) : ''
+  let place
+  try {
+    place = separatorIndex >= 0
+      ? decodeURIComponent(encodedBody.slice(separatorIndex + PLACE_SEPARATOR.length))
+      : ''
+  } catch {
+    throw new Error('A API pública retornou uma ação com local inválido.')
+  }
+
+  if (
+    typeof record?.id !== 'string'
+    || !record.id
+    || typeof record.name !== 'string'
+    || !record.name.trim()
+    || record.name.trim().length > 100
+    || record.data?.app !== DEMO_APP_MARKER
+    || separatorIndex < 0
+    || !body.trim()
+    || body.length > 500
+    || !place.trim()
+    || place.length > 100
+    || (record.data.date !== undefined
+      && !isValidDate(record.data.date))
+    || ![1, 2, 3].includes(record.data.userId)
+  ) {
+    throw new Error('A API pública de demonstração retornou uma ação em um formato inesperado.')
+  }
+
+  return {
+    id: record.id,
+    apiId: record.id,
+    title: record.name,
+    body,
+    place,
+    date: record.data.date,
+    userId: record.data.userId,
+  }
+}
 
 export const getRecords = async (signal) => {
   if (getCurrentSession()) {
@@ -74,8 +129,10 @@ export const getRecords = async (signal) => {
     return data.map((record) => ({ ...record, apiId: record.id }))
   }
 
-  if (signal?.aborted) throw new DOMException('A solicitação foi cancelada.', 'AbortError')
-  return DEMO_RECORDS.map((record) => ({ ...record, apiId: record.id }))
+  const ids = readDemoRecordIds()
+  return Promise.all(ids.map(async (id) => (
+    validateDemoRecord(await requestDemoApi(`/${encodeURIComponent(id)}`, { signal }))
+  )))
 }
 
 export const createRecord = async (record) => {
@@ -86,7 +143,14 @@ export const createRecord = async (record) => {
     })
   }
 
-  return { ...record, id: nextDemoId++ }
+  const ids = readDemoRecordIds()
+  const created = validateDemoRecord(await requestDemoApi('', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(encodeDemoRecord(record)),
+  }))
+  writeDemoRecordIds([...ids, created.apiId])
+  return created
 }
 
 export const updateRecord = async (record) => {
@@ -103,7 +167,12 @@ export const updateRecord = async (record) => {
     })
   }
 
-  return record
+  const apiId = record.apiId ?? record.id
+  return validateDemoRecord(await requestDemoApi(`/${encodeURIComponent(apiId)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(encodeDemoRecord(record)),
+  }))
 }
 
 export const deleteRecord = async (record) => {
@@ -113,5 +182,9 @@ export const deleteRecord = async (record) => {
     })
   }
 
-  return null
+  const apiId = record.apiId ?? record.id
+  const ids = readDemoRecordIds()
+  const result = await requestDemoApi(`/${encodeURIComponent(apiId)}`, { method: 'DELETE' })
+  writeDemoRecordIds(ids.filter((id) => id !== apiId))
+  return result
 }

@@ -1,4 +1,19 @@
-# Raiz Urbana
+# Ficha do projeto — CitizenTech
+
+| Item | Definição |
+|---|---|
+| Cidadão | Moradores de áreas urbanas que usam ou gostariam de usar praças e parques do bairro. |
+| Problema investigado | A proposta parte da dificuldade de acompanhar condições ambientais locais e encontrar formas simples de participar do cuidado de áreas verdes. Esta é uma hipótese de projeto, não uma conclusão de pesquisa com moradores. |
+| Solução | Site demonstrativo que reúne estimativas meteorológicas, registros pessoais de hábitos e visitas, e um painel para organizar ações comunitárias. |
+| Participação por disciplina | **Web Development:** páginas, acessibilidade, perfil e CRUD de ações. **Dados:** consulta e apresentação de previsões públicas da Open-Meteo. **IoT:** não implementado; o projeto não lê sensores. |
+| Indicador do protótipo | Quantidade de ações cadastradas e visitas a áreas verdes registradas voluntariamente no perfil. São registros do protótipo, não evidência de ações realizadas nem de impacto ambiental. |
+| ODS de referência | **ODS 11** — Cidades e comunidades sustentáveis; **ODS 13** — Ação contra a mudança global do clima; **ODS 15** — Vida terrestre. Sugestões adotadas pela equipe; a relação é temática e não comprova impacto nesses objetivos. |
+| Repositório | [Fiap-Souga/GS---Front-Web](https://github.com/Fiap-Souga/GS---Front-Web) |
+| Publicação informada | [Raiz Urbana na Vercel](https://gs-front-web-two.vercel.app/) |
+
+**Evidência de campo a completar pela equipe:** registre uma conversa ou observação real com cidadãos, com data, método e síntese anonimizada. Não há evidência de pesquisa com moradores neste repositório, e ela não deve ser inventada.
+
+## Raiz Urbana
 
 Aplicação demonstrativa sobre áreas verdes, clima urbano e participação comunitária. O projeto reúne uma página de apresentação e um perfil com conta, hábitos, árvore digital e planos comunitários.
 
@@ -48,6 +63,7 @@ O build gera os arquivos estáticos em `dist/`.
 - Registros pessoais de atividade, água, passos e visitas a áreas verdes, incluindo parques ou lugares personalizados.
 - Árvore digital, resumo de hábitos, gráfico semanal e exportação CSV.
 - Painel de ações comunitárias com local e data programada, busca e filtro por região.
+- CRUD completo de ações: no perfil autenticado, os dados são salvos na conta local; no modo visitante, as ações são lidas e gravadas na API pública RESTful API.
 - Calendário mensal de impacto com marcadores para visitas verdes, hábitos e ações, incluindo detalhes ao passar o mouse ou selecionar um dia.
 - Tour para conhecer as áreas do perfil e controles de acessibilidade para ampliar o conteúdo.
 
@@ -59,10 +75,15 @@ O build gera os arquivos estáticos em `dist/`.
 - `src/services/`: integração com API, contas locais e formulário de interesse.
 - `src/components/`: painéis React.
 - `server/`: API, rotas, modelos e armazenamento JSON local.
+- `AI.md` e `prompts.md`: uso de IA e exemplos de prompts.
 
 As condições climáticas consultam a API pública da Open-Meteo, sem chave de API. São estimativas de modelos meteorológicos para as coordenadas consultadas, não medições de sensores instalados no bairro; a resolução do modelo pode apontar para uma grade próxima. A qualidade do ar usa o índice US AQI e pode aparecer como indisponível se a fonte não responder. O diagrama de regiões é ilustrativo e não representa posições cartográficas.
 
-Outras estatísticas e iniciativas apresentadas sem login são conteúdo demonstrativo ou conceitual. Não há integração com sensores locais nem rastreamento de localização.
+As estatísticas são demonstrativas, e as ações públicas criadas por visitantes não são verificadas como eventos realizados. Não há integração com sensores locais nem rastreamento de localização.
+
+### CRUD demonstrativo de ações
+
+O painel visitante usa o endpoint [`https://api.restful-api.dev/objects`](https://api.restful-api.dev/objects) para executar `GET`, `POST`, `PUT` e `DELETE`. O conteúdo fica no serviço público; a lista de identificadores fica no armazenamento deste navegador e não sincroniza com outros dispositivos. Limpar os dados do navegador apaga essa lista, mas não apaga os objetos remotos. Os registros podem ser acessados por quem conhece o identificador. Não envie dados pessoais nem informações sensíveis. A API pode limitar requisições; para produção, use um serviço próprio com controle de acesso e persistência. Para manter planos privados, entre em uma conta local do navegador ou inicie a API local conforme as instruções abaixo.
 
 ## Modos de conta
 
@@ -134,6 +155,13 @@ Na Vercel, as contas usam o modo local do navegador descrito acima. Isso é adeq
 - O login pela API local usa senha com hash bcrypt e sessão protegida por cookie.
 - No modo de conta do navegador, os dados são criptografados antes de serem salvos localmente.
 - O formulário de interesse envia o e-mail ao Formspree.
+- O CRUD visitante salva conteúdo em uma API pública e guarda os identificadores no navegador atual; não inclua dados pessoais nos exemplos.
 - As condições climáticas vêm da Open-Meteo e são estimativas de modelos, não medições locais. Mapas esquemáticos e iniciativas sem login são demonstrativos; não há monitoramento automático de atividade ou localização.
 
 Antes de coletar dados de usuários reais, publique uma política de privacidade adequada à LGPD e defina procedimentos de retenção, exclusão, segurança e atendimento aos titulares.
+
+## Antes da entrega acadêmica
+
+- Acrescente evidência real e anonimizada de validação com cidadãos, se exigida pela turma.
+- Confirme o acesso dos avaliadores ao repositório e à publicação informada.
+- Revise a divisão por disciplina conforme o formato exigido pela turma.
