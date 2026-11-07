@@ -95,7 +95,14 @@ export function useCommunityRecords() {
       () => {
         if (sessionIdAtStart !== (getCurrentSession()?.id ?? null)) return
         setRecords((current) => current.map((item) => item.id === record.id
-          ? { ...item, title: record.title, body: record.body, userId: record.userId }
+          ? {
+            ...item,
+            title: record.title,
+            body: record.body,
+            place: record.place,
+            date: record.date,
+            userId: record.userId,
+          }
           : item))
       },
     )

@@ -18,6 +18,17 @@ const planSchema = new mongoose.Schema({
     trim: true,
     maxlength: 500,
   },
+  place: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 100,
+  },
+  date: {
+    type: String,
+    required: true,
+    match: /^\d{4}-\d{2}-\d{2}$/,
+  },
   userId: {
     type: Number,
     required: true,

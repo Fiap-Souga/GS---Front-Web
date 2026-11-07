@@ -109,6 +109,67 @@
 @media (max-width: 900px) { .habit-entry-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }.habit-save-button { min-height: 40px; } }
 @media (max-width: 640px) { .profile-tutorial, .habit-panel { padding: 15px; }.habit-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }.habit-summary article:last-child { grid-column: 1 / -1; }.habit-history li { align-items: flex-start; flex-direction: column; }.habit-entry-actions { width: 100%; }.habit-entry-actions button { flex: 1; min-height: 36px; } }
 
+.impact-calendar { margin-top: 16px; padding: 18px; border: 1px solid #e4eadd; border-radius: 10px; background: linear-gradient(145deg, #f8fbf5, #fff 70%); }
+.impact-calendar-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.impact-calendar-heading h3 { margin: 5px 0 4px; color: #2d4332; font-family: Manrope, sans-serif; font-size: 19px; letter-spacing: -.5px; }
+.impact-calendar-heading p { max-width: 550px; margin: 0; color: #748071; font-size: 10px; line-height: 1.6; }
+.impact-calendar-month-nav { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
+.impact-calendar-month-nav strong { min-width: 112px; color: #40533d; text-align: center; font-size: 11px; text-transform: capitalize; }
+.impact-calendar-month-nav button { width: 32px; height: 32px; border: 1px solid #dfe7db; border-radius: 7px; background: white; color: #52674d; font-size: 22px; line-height: 1; cursor: pointer; }
+.impact-calendar-month-nav button:hover { border-color: #b6cba8; background: #f0f5ec; }
+.impact-calendar-month-nav button:focus-visible, .impact-day:focus-visible { outline: 3px solid #8eaa7680; outline-offset: 2px; }
+.impact-calendar-summary { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; margin: 15px 0 13px; }
+.impact-calendar-summary span { display: grid; gap: 3px; padding: 9px 10px; border: 1px solid #e8ede3; border-radius: 7px; background: #fff; color: #7d8778; font-size: 8px; }
+.impact-calendar-summary strong { color: #416344; font-family: Manrope, sans-serif; font-size: 17px; }
+.impact-calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.impact-weekday { padding: 4px 0; color: #899385; text-align: center; font-size: 8px; font-weight: 700; }
+.impact-day-cell { min-width: 0; display: grid; place-items: center; }
+.impact-day-empty { min-height: 42px; }
+.impact-day { position: relative; width: min(100%, 48px); min-height: 42px; display: grid; align-content: center; justify-items: center; gap: 3px; padding: 4px 2px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: #586656; font-size: 10px; cursor: pointer; transition: background .16s, border-color .16s, transform .16s; }
+.impact-day:hover, .impact-day.has-events { background: #f0f5ec; }
+.impact-day.has-events:hover { border-color: #d7e4cf; transform: translateY(-1px); }
+.impact-day.is-selected { border-color: #83a36e; background: #eaf2e4; color: #315438; box-shadow: inset 0 0 0 1px #83a36e30; font-weight: 800; }
+.impact-day-dots { min-height: 6px; display: flex; align-items: center; justify-content: center; gap: 3px; }
+.impact-day-dot { width: 6px; height: 6px; display: inline-block; flex: 0 0 6px; border-radius: 50%; }
+.impact-dot-visit { background: #6f9c56; }.impact-dot-habit { background: #e1a34b; }.impact-dot-action { background: #6485b6; }
+.impact-day-dots small { color: #6d7f63; font-size: 7px; line-height: 1; }
+.impact-day[data-tooltip]:hover::after, .impact-day[data-tooltip]:focus-visible::after { position: absolute; bottom: calc(100% + 6px); left: 50%; z-index: 20; width: max-content; max-width: min(240px, calc(100vw - 48px)); padding: 8px 10px; border: 1px solid #dfe7db; border-radius: 7px; background: #fff; box-shadow: 0 8px 22px #20332224; color: #40533d; content: attr(data-tooltip); white-space: pre-line; text-align: left; font-size: 9px; font-weight: 500; line-height: 1.45; pointer-events: none; transform: translateX(-50%); }
+.impact-calendar-legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; }
+.impact-calendar-legend span { display: inline-flex; align-items: center; gap: 6px; color: #778273; font-size: 8px; }
+.impact-day-details { margin-top: 14px; padding: 12px 13px; border: 1px solid #e7ece2; border-radius: 8px; background: #fff; }
+.impact-day-details h4 { margin: 0; color: #435742; font-family: Manrope, sans-serif; font-size: 11px; text-transform: capitalize; }
+.impact-day-details > p { margin: 6px 0 0; color: #899385; font-size: 9px; line-height: 1.5; }
+.impact-day-details ul { display: grid; gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
+.impact-day-details li { display: flex; align-items: flex-start; gap: 8px; }
+.impact-day-details li > .impact-day-dot { margin-top: 5px; }
+.impact-day-details li > div { min-width: 0; display: grid; gap: 3px; }
+.impact-day-details li strong { color: #465448; font-size: 9px; }.impact-day-details li span { color: #7d8778; font-size: 8px; line-height: 1.5; overflow-wrap: anywhere; }
+.record-location { display: flex; align-items: center; gap: 5px; margin-top: 9px !important; color: #617456 !important; font-weight: 700; }
+.record-location svg { width: 13px; height: 13px; flex: 0 0 auto; }
+.record-date { display: block; margin-top: 5px; color: #899385; font-size: 9px; }
+.record-form input[type="date"] { min-height: 39px; }
+@media (max-width: 640px) {
+  .impact-calendar { padding: 14px 11px; border-radius: 11px; }
+  .impact-calendar-heading { flex-direction: column; gap: 12px; }
+  .impact-calendar-heading h3 { font-size: 20px; }
+  .impact-calendar-heading p { font-size: 12px; }
+  .impact-calendar-month-nav { width: 100%; justify-content: space-between; }
+  .impact-calendar-month-nav strong { font-size: 14px; }
+  .impact-calendar-month-nav button { width: 42px; height: 42px; }
+  .impact-calendar-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .impact-calendar-summary span { font-size: 11px; }
+  .impact-calendar-summary strong { font-size: 20px; }
+  .impact-day-empty { min-height: 43px; }
+  .impact-day { min-height: 43px; font-size: 12px; }
+  .impact-weekday { font-size: 10px; }
+  .impact-calendar-legend { gap: 9px 12px; }
+  .impact-calendar-legend span { font-size: 10px; }
+  .impact-day-details h4 { font-size: 14px; }
+  .impact-day-details > p, .impact-day-details li span { font-size: 11px; }
+  .impact-day-details li strong { font-size: 12px; }
+  .record-date { font-size: 11px; }
+}
+
 .habit-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .habit-heading-actions { display: flex; flex: 0 0 auto; gap: 7px; }
 .habit-tool-button { min-height: 35px; padding: 0 11px; border: 1px solid #dfe7db; border-radius: 6px; background: #fff; color: #52674d; font-size: 9px; font-weight: 700; cursor: pointer; transition: background .15s, border-color .15s; }

@@ -57,11 +57,16 @@ describe('persistência local em JSON', () => {
       owner: ana.id,
       title: 'Mutirão de plantio',
       body: 'Plantar espécies nativas.',
+      place: 'Horto comunitário',
+      date: '2026-11-15',
       userId: 1,
     })
 
     const restarted = await createFileRepositories(filePath)
     expect(await restarted.planRepository.findByOwner(ana.id)).toHaveLength(1)
+    expect(await restarted.planRepository.findByOwner(ana.id)).toMatchObject([
+      { place: 'Horto comunitário', date: '2026-11-15' },
+    ])
     expect(await restarted.planRepository.findByOwner(bia.id)).toEqual([])
     expect(await restarted.planRepository.updateByOwner(plan.id, bia.id, {
       title: 'Acesso indevido',

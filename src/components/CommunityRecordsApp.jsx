@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useCommunityRecords } from '../hooks/useCommunityRecords.js'
 import { useDialogDismiss } from '../hooks/useDialogDismiss.js'
 import { useRecordForm } from '../hooks/useRecordForm.js'
 import { getCurrentSession } from '../services/authApi.js'
+import { ImpactCalendar } from './ImpactCalendar.jsx'
 import '../react.css'
 
 const REGIONS = [
@@ -44,6 +45,14 @@ function RecordForm({ record, isSaving, onCancel, onSubmit }) {
       <label>
         Descrição
         <textarea maxLength={500} value={form.description} onChange={(event) => form.setDescription(event.target.value)} placeholder="Conte o que a comunidade pode fazer." />
+      </label>
+      <label>
+        Local da ação
+        <input aria-required="true" maxLength={100} value={form.place} onChange={(event) => form.setPlace(event.target.value)} placeholder="Ex.: Praça das Corujas" />
+      </label>
+      <label>
+        Data da ação
+        <input aria-required="true" type="date" value={form.date} onChange={(event) => form.setDate(event.target.value)} />
       </label>
       <label>
         Região
@@ -128,6 +137,8 @@ function RecordCard({ record, isSaving, onEdit, onDelete }) {
       </div>
       <h3>{record.title}</h3>
       <p>{record.body}</p>
+      {record.place && <p className="record-location">{locationIcon}<span>{record.place}</span></p>}
+      {record.date && <time className="record-date" dateTime={record.date}>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${record.date}T12:00:00.000Z`))}</time>}
       <div className="record-card-actions">
         <button type="button" disabled={isSaving} onClick={() => onEdit(record)}>Editar</button>
         <button type="button" disabled={isSaving} onClick={() => onDelete(record)}>Excluir</button>
@@ -150,7 +161,8 @@ function RecordList({ records, isSaving, onEdit, onDelete }) {
 }
 
 export function CommunityRecordsApp() {
-  const isSignedIn = Boolean(getCurrentSession())
+  const [profile, setProfile] = useState(getCurrentSession())
+  const isSignedIn = Boolean(profile)
   const {
     records,
     isLoading,
@@ -167,8 +179,14 @@ export function CommunityRecordsApp() {
   const [editingRecord, setEditingRecord] = useState(undefined)
   const [deletingRecord, setDeletingRecord] = useState(null)
 
+  useEffect(() => {
+    const syncProfile = (event) => setProfile(event.detail)
+    window.addEventListener('raiz-urbana:session', syncProfile)
+    return () => window.removeEventListener('raiz-urbana:session', syncProfile)
+  }, [])
+
   const filteredRecords = useMemo(() => records.filter((record) => {
-    const matchesText = `${record.title} ${record.body}`.toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR'))
+    const matchesText = `${record.title} ${record.body} ${record.place ?? ''}`.toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR'))
     const matchesRegion = region === 'all' || Number(record.userId) === Number(region)
     return matchesText && matchesRegion
   }), [records, search, region])
@@ -198,6 +216,7 @@ export function CommunityRecordsApp() {
         <span className="records-count" aria-live="polite">{records.length} ações</span>
       </div>
       <ApiNotice isSignedIn={isSignedIn} />
+      {profile && <ImpactCalendar profile={profile} plans={records} />}
       {error && (
         <div className="record-error" role="alert">
           <span>{error}</span>

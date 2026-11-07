@@ -278,19 +278,37 @@ describe('API de autenticação', () => {
       .post('/api/plans')
       .set('Cookie', ana.cookie)
       .set('X-CSRF-Token', ana.csrfToken)
-      .send({ title: 'Plantio comunitário', body: 'Preparar mudas nativas.', userId: 1 })
+      .send({
+        title: 'Plantio comunitário',
+        body: 'Preparar mudas nativas.',
+        place: 'Horto comunitário',
+        date: '2026-11-15',
+        userId: 1,
+      })
     const anaPlans = await request(app).get('/api/plans').set('Cookie', ana.cookie)
     const biaPlans = await request(app).get('/api/plans').set('Cookie', bia.cookie)
     const deniedUpdate = await request(app)
       .put(`/api/plans/${created.body.id}`)
       .set('Cookie', bia.cookie)
       .set('X-CSRF-Token', bia.csrfToken)
-      .send({ title: 'Alteração indevida', body: 'Sem acesso.', userId: 1 })
+      .send({
+        title: 'Alteração indevida',
+        body: 'Sem acesso.',
+        place: 'Praça central',
+        date: '2026-11-15',
+        userId: 1,
+      })
     const updated = await request(app)
       .put(`/api/plans/${created.body.id}`)
       .set('Cookie', ana.cookie)
       .set('X-CSRF-Token', ana.csrfToken)
-      .send({ title: 'Plantio atualizado', body: 'Mudas nativas.', userId: 2 })
+      .send({
+        title: 'Plantio atualizado',
+        body: 'Mudas nativas.',
+        place: 'Praça nova',
+        date: '2026-11-16',
+        userId: 2,
+      })
     const deleted = await request(app)
       .delete(`/api/plans/${created.body.id}`)
       .set('Cookie', ana.cookie)
@@ -298,11 +316,54 @@ describe('API de autenticação', () => {
 
     expect(created.status).toBe(201)
     expect(anaPlans.body).toHaveLength(1)
+    expect(anaPlans.body[0]).toMatchObject({ place: 'Horto comunitário', date: '2026-11-15' })
     expect(biaPlans.body).toEqual([])
     expect(deniedUpdate.status).toBe(404)
     expect(updated.body.title).toBe('Plantio atualizado')
+    expect(updated.body.place).toBe('Praça nova')
     expect(deleted.status).toBe(204)
     expect(planRepository.plans.size).toBe(0)
+  })
+
+  it('exige local e data válidos para ações comunitárias', async () => {
+    const app = createApp({
+      userRepository: createRepository(),
+      planRepository: createPlanRepository(),
+      jwtSecret: JWT_SECRET,
+    })
+    await request(app).post('/api/auth/register').send({
+      name: 'Ana Verde',
+      email: 'ana@example.com',
+      password: 'senha-segura-123',
+    })
+    const session = await signIn(app, 'ana@example.com')
+    const headers = {
+      Cookie: session.cookie,
+      'X-CSRF-Token': session.csrfToken,
+    }
+    const validFields = {
+      title: 'Mutirão',
+      body: 'Preparar o canteiro.',
+      place: 'Horto comunitário',
+      date: '2026-11-15',
+      userId: 1,
+    }
+    const missingPlace = await request(app)
+      .post('/api/plans')
+      .set(headers)
+      .send({ ...validFields, place: ' ' })
+    const invalidDate = await request(app)
+      .post('/api/plans')
+      .set(headers)
+      .send({ ...validFields, date: '2026-02-30' })
+    const tooLongPlace = await request(app)
+      .post('/api/plans')
+      .set(headers)
+      .send({ ...validFields, place: 'x'.repeat(101) })
+
+    expect(missingPlace.status).toBe(400)
+    expect(invalidDate.status).toBe(400)
+    expect(tooLongPlace.status).toBe(400)
   })
 
   it('atualiza o perfil e reinicia apenas a árvore da conta autenticada', async () => {

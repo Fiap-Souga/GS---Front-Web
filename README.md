@@ -47,7 +47,8 @@ O build gera os arquivos estáticos em `dist/`.
 - Cadastro, login e edição de nome de perfil.
 - Registros pessoais de atividade, água, passos e visitas a áreas verdes, incluindo parques ou lugares personalizados.
 - Árvore digital, resumo de hábitos, gráfico semanal e exportação CSV.
-- Painel de planos comunitários, com busca e filtro por região.
+- Painel de ações comunitárias com local e data programada, busca e filtro por região.
+- Calendário mensal de impacto com marcadores para visitas verdes, hábitos e ações, incluindo detalhes ao passar o mouse ou selecionar um dia.
 - Tour para conhecer as áreas do perfil e controles de acessibilidade para ampliar o conteúdo.
 
 ### Tecnologias e estrutura

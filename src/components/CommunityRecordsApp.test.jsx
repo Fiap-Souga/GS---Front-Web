@@ -34,9 +34,12 @@ describe('CommunityRecordsApp', () => {
     await user.click(screen.getByRole('button', { name: '+ Nova ação' }))
     await user.type(screen.getByLabelText('Título da ação'), 'Mutirão de plantio')
     await user.type(screen.getByLabelText('Descrição'), 'Plantio de árvores nativas.')
+    await user.type(screen.getByLabelText('Local da ação'), 'Horto comunitário')
+    fireEvent.change(screen.getByLabelText('Data da ação'), { target: { value: '2026-11-15' } })
     await user.click(screen.getByRole('button', { name: 'Criar ação' }))
 
     expect(await screen.findByText('Mutirão de plantio')).toBeTruthy()
+    expect(screen.getByText('Horto comunitário')).toBeTruthy()
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
@@ -48,9 +51,12 @@ describe('CommunityRecordsApp', () => {
     const title = screen.getByLabelText('Título da ação')
     await user.clear(title)
     await user.type(title, 'Plantio atualizado')
+    await user.clear(screen.getByLabelText('Local da ação'))
+    await user.type(screen.getByLabelText('Local da ação'), 'Praça nova')
     await user.click(screen.getByRole('button', { name: 'Salvar alterações' }))
 
     expect(await screen.findByText('Plantio atualizado')).toBeTruthy()
+    expect(screen.getByText('Praça nova')).toBeTruthy()
     expect(fetchMock).not.toHaveBeenCalled()
   })
 

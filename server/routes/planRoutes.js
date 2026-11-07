@@ -5,17 +5,36 @@ const toPublicPlan = (plan) => ({
   id: plan.id ?? String(plan._id),
   title: plan.title,
   body: plan.body,
+  place: plan.place,
+  date: plan.date,
   userId: plan.userId,
 })
+
+const isValidDate = (value) => {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const parsed = new Date(`${value}T00:00:00.000Z`)
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
+}
 
 const validatePlan = (values) => {
   const title = typeof values?.title === 'string' ? values.title.trim() : ''
   const body = typeof values?.body === 'string' ? values.body.trim() : ''
+  const place = typeof values?.place === 'string' ? values.place.trim() : ''
+  const date = values?.date
   const userId = Number(values?.userId)
-  if (!title || title.length > 100 || !body || body.length > 500 || ![1, 2, 3].includes(userId)) {
+  if (
+    !title
+    || title.length > 100
+    || !body
+    || body.length > 500
+    || !place
+    || place.length > 100
+    || !isValidDate(date)
+    || ![1, 2, 3].includes(userId)
+  ) {
     return null
   }
-  return { title, body, userId }
+  return { title, body, place, date, userId }
 }
 
 export function createPlanRouter({ planRepository, requireAuth }) {
@@ -32,7 +51,7 @@ export function createPlanRouter({ planRepository, requireAuth }) {
 
   router.post('/', requireAuth, async (request, response, next) => {
     const values = validatePlan(request.body)
-    if (!values) return response.status(400).json({ error: 'Informe título, descrição e região válidos.' })
+    if (!values) return response.status(400).json({ error: 'Informe título, descrição, local, data e região válidos.' })
 
     try {
       const plan = await planRepository.create({ ...values, owner: request.user.id })
@@ -47,7 +66,7 @@ export function createPlanRouter({ planRepository, requireAuth }) {
       return response.status(400).json({ error: 'Ação inválida.' })
     }
     const values = validatePlan(request.body)
-    if (!values) return response.status(400).json({ error: 'Informe título, descrição e região válidos.' })
+    if (!values) return response.status(400).json({ error: 'Informe título, descrição, local, data e região válidos.' })
 
     try {
       const plan = await planRepository.updateByOwner(request.params.id, request.user.id, values)

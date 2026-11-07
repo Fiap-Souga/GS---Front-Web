@@ -35,10 +35,16 @@ describe('autenticação no modo local do navegador', () => {
     await api.addTreeVisit('Parque Ibirapuera')
     const plan = await api.authenticatedRequest('/api/plans', {
       method: 'POST',
-      body: JSON.stringify({ title: 'Plantio', body: 'Mudas nativas.', userId: 1 }),
+      body: JSON.stringify({
+        title: 'Plantio',
+        body: 'Mudas nativas.',
+        place: 'Horto comunitário',
+        date: new Date().toISOString().slice(0, 10),
+        userId: 1,
+      }),
     })
     expect(await api.authenticatedRequest('/api/plans')).toMatchObject([
-      { id: plan.id, title: 'Plantio' },
+      { id: plan.id, title: 'Plantio', place: 'Horto comunitário' },
     ])
 
     await api.logout()
